@@ -44,7 +44,8 @@ const TwoFAEmail = async (req,res) =>{
       from: 'xdb19981@gmail.com',
       from_name: 'Xavier Baldwin'
   }, to: emailIn, channel: 'email'})
-  .then(verification => console.log(verification))
+  .then(verification => res.json({verification}) | console.log(verification))
+  //.then(verification => console.log(verification)) //original text that shows it in console only
   }else{
   res.status(500).json({'message': `${emailIn} isn't a user. Please enter a valid email`})
   }
@@ -56,7 +57,7 @@ const ConfirmTwoFAEmail = async (req,res) =>{
   client.verify.v2.services('VAbbb1c2712a87ffd226dff8243038418f')
   .verificationChecks
   .create({to: emailIn, code: codeIn})
-  .then(verification_check => console.log(verification_check)); 
+  .then(verification_check => res.json({verification_check}) | console.log(verification_check)); 
 }
 
 
