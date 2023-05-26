@@ -21,23 +21,25 @@ const b2 = new B2({
 
 Current functionality:
 
-- Uploads a profile picture to Backblaze B2 and stores the required info in MongoDB
-- Checks for duplicates and deletes old profile picture from Backblaze and MongoDB
+
+1. Uploads a profile picture to Backblaze B2 and stores the required info in MongoDB
+- Checks for pre-existing profile picture and deletes old one from Backblaze and MongoDB
 - Returns a success message if the upload was successful
 - Requires the following parameters in the request body:
   - imagePurpose: "profile_picture"
   - attachedEmail: "string"
   - uploadedImage: file
 
+
+  Will refactor later.
 */
 
 
 const addProfilePicture = asyncHandler(async (req, res) => { 
   const _imagePurpose = req.body.imagePurpose;
   const _attachedEmail = req.body.attachedEmail;
-  let _fileID; // Backblaze file ID
 
-  
+
   if (!_attachedEmail || !_imagePurpose) {
     return res.status(400).json({ 'message': 'Missing parameters. Email, Image Purpose, and Image Type are required.' });
   }
