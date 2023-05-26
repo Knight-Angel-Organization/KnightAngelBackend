@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 // Making a user schema with all the details required from the user 
 const Schema = mongoose.Schema;
 const userSchema = new Schema({
-      encodedImage: {
+      imageURL: {
         type: String,
         required: false,
       },
