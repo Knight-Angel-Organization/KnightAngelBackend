@@ -17,22 +17,48 @@ const b2 = new B2({
 });
 
 
+/*
 
-const addProfilePicture = asyncHandler(async (req, res) => {
-  const _imageType = req.body.imageType;
+Current functionality:
+
+- Uploads a profile picture to Backblaze B2 and stores the required info in MongoDB
+- Checks for duplicates and deletes old profile picture from Backblaze and MongoDB
+- Requires the following parameters in the request body:
+  - imagePurpose: "profile_picture"
+  - attachedEmail: "string"
+  - uploadedImage: file
+  */
+
+
+const addProfilePicture = asyncHandler(async (req, res) => { 
   const _imagePurpose = req.body.imagePurpose;
   const _attachedEmail = req.body.attachedEmail;
-
+  let _fileID; // Backblaze file ID
 
   
-  if (!_attachedEmail || !_imageType || !_imagePurpose) {
+  if (!_attachedEmail || !_imagePurpose) {
     return res.status(400).json({ 'message': 'Missing parameters. Email, Image Purpose, and Image Type are required.' });
   }
 
   // Duplication checking in DB
   const duplicate = await Image.findOne({ email: _attachedEmail }).exec();
   if (duplicate) {
-    return res.sendStatus(409); // Conflict
+    // Delete the document from the database and remove old profile picture from Backblaze
+
+    await b2.authorize(); // must authorize first (authorization lasts 24 hrs)
+    console.log("Authorized");
+    let response = await b2.getBucket({
+        bucketName: "knightangel",
+    });
+
+    const deleteFileResponse = await b2.deleteFileVersion({
+      fileName: duplicate.fileName,
+      fileId: duplicate.fileID,
+    });
+
+    // Delete old document from MongoDB
+    await Image.deleteOne({ email: _attachedEmail }).exec();
+
   }
 
   try {
@@ -47,31 +73,33 @@ const addProfilePicture = asyncHandler(async (req, res) => {
     let response = await b2.getBucket({
         bucketName: "knightangel",
     });
-
-    b2.getUploadUrl({
+    const uploadUrlResponse = await b2.getUploadUrl({
       bucketId: process.env.B2_BUCKET_ID,
-  }).then((response) => {
-      console.log(
-          "getUploadUrl",
-          response.data.uploadUrl,
-          response.data.authorizationToken
-      );
+    });
 
-      b2.uploadFile({
-          uploadUrl: response.data.uploadUrl,
-          uploadAuthToken: response.data.authorizationToken,
-          fileName: _fileName,
-          data: _uploadedImage, // this is expecting a Buffer, not an encoded string
-          onUploadProgress: (event) => {},
-      }).then((response) => {
-          console.log("uploadFile", response);
-      });
-  })
+    console.log(
+      "getUploadUrl",
+      uploadUrlResponse.data.uploadUrl,
+      uploadUrlResponse.data.authorizationToken
+    );
+
+    const uploadResponse = await b2.uploadFile({
+      uploadUrl: uploadUrlResponse.data.uploadUrl,
+      uploadAuthToken: uploadUrlResponse.data.authorizationToken,
+      fileName: _fileName,
+      data: _uploadedImage, // this is expecting a Buffer, not an encoded string
+      onUploadProgress: (event) => {},
+    });
+
+    console.log("uploadFile", uploadResponse);
+    const _fileID = uploadResponse.data.fileId;
+    
     const result = await Image.create({
       imageURL: "https://f005.backblazeb2.com/file/knightangel/" + _fileName,
       attachedEmail: _attachedEmail,
       imagePurpose: _imagePurpose,
-      imageType: _imageType,
+      fileID: _fileID,
+      fileName: _fileName, // Backblaze file name
     });
 
     console.log(result);

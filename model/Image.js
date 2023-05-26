@@ -10,10 +10,13 @@ const userSchema = new Schema({
         type: String,
         required: false
       },
-      imageType: {
+      imagePurpose: {
         type: String,
       },
-      imagePurpose: {
+      fileID: {
+        type: String,
+      },
+      fileName: {
         type: String,
       },
       uploadDate: {
