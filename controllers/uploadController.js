@@ -4,6 +4,7 @@ const multer = require('multer');
 const B2 = require('backblaze-b2');
 const crypto = require('crypto');
 const path = require('path');
+//const filetype = require('file-type');
 
 // Set up Multer middleware to handle file uploads
 const upload = multer().single('uploadedImage');
@@ -21,28 +22,28 @@ const b2 = new B2({
 
 Current functionality:
 
-
 1. Uploads a profile picture to Backblaze B2 and stores the required info in MongoDB
 - Checks for pre-existing profile picture and deletes old one from Backblaze and MongoDB
 - Returns a success message if the upload was successful
 - Requires the following parameters in the request body:
-  - imagePurpose: "profile_picture"
   - attachedEmail: "string"
   - uploadedImage: file
-
-
+- Todo:
+  - Verify the image is legitimately an image and only allow JPG, JPEG, and PNG
   Will refactor later.
+
 */
 
 
 const addProfilePicture = asyncHandler(async (req, res) => { 
-  const _imagePurpose = req.body.imagePurpose;
+  const _imagePurpose = "profile_picture";
   const _attachedEmail = req.body.attachedEmail;
 
-
-  if (!_attachedEmail || !_imagePurpose) {
-    return res.status(400).json({ 'message': 'Missing parameters. Email, Image Purpose, and Image Type are required.' });
+  if (!_attachedEmail) {
+    return res.status(400).json({ 'message': 'Email is required.' });
   }
+
+
 
   // Duplication checking in DB
   const duplicate = await Image.findOne({ email: _attachedEmail }).exec();
@@ -55,14 +56,13 @@ const addProfilePicture = asyncHandler(async (req, res) => {
         bucketName: "knightangel",
     });
 
-    const deleteFileResponse = await b2.deleteFileVersion({
+    b2.deleteFileVersion({
       fileName: duplicate.fileName,
       fileId: duplicate.fileID,
     });
 
     // Delete old document from MongoDB
     await Image.deleteOne({ email: _attachedEmail }).exec();
-
   }
 
   try {
