@@ -19,7 +19,11 @@ To-do:
 - Use separate identifier than User ID to verify user. User ID is not secure.
 - Add a way to delete posts.
 - Add a way to edit posts.
-
+- Add a way to add comments to posts.
+- Add a way to delete comments.
+- Add a way to edit comments.
+- Maybe add a way to like posts.
+- Maybe add a way to like comments.
 
 
 */
