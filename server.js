@@ -41,6 +41,7 @@ app.use(cookieParser());
 
 //routes
 app.use('/users', require('./routes/userRoutes'))//routes to for user authentication
+app.use('/posts', require('./routes/postRoutes'))//routes for posts
 app.use(verifyJWT); //everything after this will user JWT refresh tokens. usually shorter around 5-10 min. 
 
 // app.all('*', (req, res) => {
