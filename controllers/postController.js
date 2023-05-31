@@ -6,7 +6,7 @@ const { ObjectId } = require('mongodb');
 /*
 
 Current functionality:
-Create a new post with the user ID, first and last name + post content, title, location and type.
+Create a new post with the user ID, first and last name + post content, title, location, category, and type.
 - Check if the user ID, post content, title, and type are provided, if not, return an error message.
 - Check if the post content is longer than 1000 characters or post title is longer than 100 characters.
 - Check if the user ID is valid.
@@ -36,6 +36,7 @@ const addPost = asyncHandler(async (req, res) => {
   const _postContent = req.body.postContent;
   const _postTitle = req.body.postTitle;
   const _postType = req.body.postType;
+  const _postCategory = req.body.postCategory;
   let _postLocation;
   // Check if post location is provided, if not, set it to "false".
     if (!req.body.postLocation) {
@@ -45,10 +46,10 @@ const addPost = asyncHandler(async (req, res) => {
     }
 
 
-    // Check if the user ID, post content, title, and type are provided, if not, return an error message.
+    // Check if the user ID, post content, title, category and type are provided, if not, return an error message.
 
-  if (!_postContent || !_postTitle || !_postType || !_userID) {
-    return res.status(400).json({ 'message': 'Error: Post content, title, type, and user ID are required.' });
+  if (!_postContent || !_postTitle || !_postType || !_postCategory || !_userID) {
+    return res.status(400).json({ 'message': 'Error: Post content, title, category, type, and user ID are required.' });
   }
 
   // If post content is longer than 1000 characters or post title is longer than 100 characters.
@@ -79,7 +80,8 @@ const addPost = asyncHandler(async (req, res) => {
         postTitle: _postTitle,
         postLocation: _postLocation,
         // postImages: _postImages,
-        postType: _postType
+        postType: _postType,
+        postCategory: _postCategory
     });
 
     // If the post is successfully created, return a success message, otherwise return an error message.
@@ -87,6 +89,35 @@ const addPost = asyncHandler(async (req, res) => {
         return res.status(201).json({ 'success': 'Post created successfully.' });
     } else {
         return res.status(400).json({ 'message': 'Error: Post could not be created.' });
+    }
+});
+
+// Retrieve post from database by post ID.
+const getPost = asyncHandler(async (req, res) => {
+    // Get the post ID from the request body.
+    const _postID = req.body.postID;
+
+    // Check if the post ID is provided, if not, return an error message.
+    if (!_postID) {
+        return res.status(400).json({ 'message': 'Error: Post ID is required.' });
+    }
+
+    // Verify post ID is a string of 24 hex characters
+    if (!/^[0-9a-fA-F]{24}$/.test(_postID)) {
+        return res.status(400).json({ 'message': 'Post ID is invalid.' });
+    }
+
+    // Check if the post ID is found in the database.
+    const foundPost = await Post.findOne({ _id: new ObjectId(_postID) });
+
+    // If post ID is not found, return an error message.
+    if (!foundPost) {
+        return res.status(400).json({ 'message': 'Error: Post ID is not found.' });
+    }
+
+    // If post ID is found, return the post.
+    if (foundPost) {
+        return res.status(200).json({ 'post': foundPost });
     }
 });
 
@@ -123,4 +154,4 @@ const addComment = asyncHandler(async (req, res) => {
 });
 */
 
-module.exports = { addPost };
+module.exports = { addPost, getPost };

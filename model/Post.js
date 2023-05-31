@@ -36,6 +36,10 @@ const postSchema = new Schema({
       type: String,
       required: true,
     },
+    postCategory: {
+      type: String,
+      required: true,
+    },
       
     date: {
       type: Date,
