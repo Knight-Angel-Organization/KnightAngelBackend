@@ -1,4 +1,4 @@
-const Image = require('../model/Image');
+const Image = require('../model/User');
 const asyncHandler = require('express-async-handler');
 const multer = require('multer');
 const B2 = require('backblaze-b2');

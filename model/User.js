@@ -1,15 +1,44 @@
 const mongoose = require("mongoose");
+const Image = require ("../model/Image");
 // Making a user schema with all the details required from the user 
 const Schema = mongoose.Schema;
+
+const imageSchema = new Schema({
+  imageURL: {
+    type: String,
+    required: false,
+  },
+  attachedEmail:{
+    type: String,
+    required: false
+  },
+  imagePurpose: {
+    type: String,
+  },
+  fileID: {
+    type: String,
+  },
+  fileName: {
+    type: String,
+  },
+  uploadDate: {
+    type: Date,
+    default: Date.now,
+  }
+})
+
 const userSchema = new Schema({
     firstName: {
         type: String,
         required: false,
       },
+      
       lastName:{
         type: String,
         required: false
       },
+      
+      profilePic: imageSchema,
 
       email: {
         type: String,
@@ -41,7 +70,6 @@ const userSchema = new Schema({
         type: String,
         required: false,
       },
-
       refreshToken: [String] //having in array supports multidevice login
 })
 

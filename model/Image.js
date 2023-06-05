@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 // Making a user schema with all the details required from the user 
 const Schema = mongoose.Schema;
-const userSchema = new Schema({
+const imageSchema = new Schema({
       imageURL: {
         type: String,
         required: false,
@@ -25,4 +25,4 @@ const userSchema = new Schema({
       }
 })
 
-module.exports = mongoose.model("Image", userSchema);
+module.exports = mongoose.model("Image", imageSchema);
