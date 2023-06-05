@@ -4,8 +4,10 @@ const bcrypt = require('bcrypt');
 const { json } = require('express');
 const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail')
+const multer = require('multer');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
+const upload = multer().none();
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
@@ -160,5 +162,17 @@ const handleRefreshToken = asyncHandler(async (req,res) => {
     )
 })
 
+const createUploadMiddleware = () => {
+    const upload = multer();
+  
+    return (req, res, next) => {
+      const contentType = req.headers['content-type'];
+  
+      if (contentType.includes('multipart/form-data')) {
+        upload.none()(req, res, next);
+      }
+      next();
+    };
+  };
 
-module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken }
+module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, upload: createUploadMiddleware() }
