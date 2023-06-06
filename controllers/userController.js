@@ -162,17 +162,18 @@ const handleRefreshToken = asyncHandler(async (req,res) => {
     )
 })
 
-const createUploadMiddleware = () => {
-    const upload = multer();
+const determineRequestType = () => {
+    const multr = multer();
   
     return (req, res, next) => {
       const contentType = req.headers['content-type'];
   
-      if (contentType.includes('multipart/form-data')) {
-        upload.none()(req, res, next);
+      if (contentType && contentType.includes('multipart/form-data')) {
+        multr.none()(req, res, next);
+      } else {
+        next();
       }
-      next();
     };
   };
 
-module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, upload: createUploadMiddleware() }
+module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType() }

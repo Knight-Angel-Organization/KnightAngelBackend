@@ -8,21 +8,21 @@ const { getProfilePicture, addProfilePicture, upload } = pictureController;
 
 // Requires form-data in Postman
 router.route('/register')
-    .post(userController.upload, userController.handleNewUser)
-    .post(sendGrid.emailNewUser)
+    .post(userController.determineRequestType, userController.handleNewUser)
+    .post(userController.determineRequestType, sendGrid.emailNewUser)
     
 router.route('/auth')
     .get(userController.handleLogout)
-    .post(userController.handleLogin)
+    .post(userController.determineRequestType, userController.handleLogin)
 
 router.route('/refresh')
     .get(userController.handleRefreshToken)
 
 router.route('/twofactor')
-    .post(sendGrid.TwoFAEmail)
+    .post(userController.determineRequestType, sendGrid.TwoFAEmail)
 
 router.route('/twofactorconfirm')
-    .post(sendGrid.ConfirmTwoFAEmail)    
+    .post(userController.determineRequestType, sendGrid.ConfirmTwoFAEmail)    
 
 router.route('/profilepicture')
     .post(upload, addProfilePicture)
