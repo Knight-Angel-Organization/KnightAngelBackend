@@ -6,7 +6,7 @@ const pictureController = require('../controllers/pictureController');
 const { getProfilePicture, addProfilePicture, upload } = pictureController; 
 
 
-// Requires form-data in Postman
+// form-data, x-www-urlencoded, JSON supported except for Twilio/Sendgrid which requires x-www-form-urlencoded or JSON
 router.route('/register')
     .post(userController.determineRequestType, userController.handleNewUser)
     .post(userController.determineRequestType, sendGrid.emailNewUser)
