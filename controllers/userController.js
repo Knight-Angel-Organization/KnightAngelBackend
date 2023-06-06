@@ -162,6 +162,12 @@ const handleRefreshToken = asyncHandler(async (req,res) => {
     )
 })
 
+// Determine if the request is a multipart request
+// If it is, use multer to parse the request
+// If it is not, then continue as if it is a normal request (JSON Raw or x-www-form-urlencoded)
+
+// determineRequestType() should be run before any other function
+
 const determineRequestType = () => {
     const multr = multer();
   
