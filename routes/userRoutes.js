@@ -23,7 +23,7 @@ router.route('/twofactorconfirm')
     .post(sendGrid.ConfirmTwoFAEmail)    
 
 router.route('/profilepicture')
-    .post(upload, addProfilePicture)
-    .get(getProfilePicture)
+    .post(pictureController.upload, pictureController.addProfilePicture)
+    .get(pictureController.getProfilePicture)
     
 module.exports = router
