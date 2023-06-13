@@ -1,4 +1,4 @@
-const Image = require('../model/User');
+const User = require('../model/User');
 const asyncHandler = require('express-async-handler');
 const multer = require('multer');
 const B2 = require('backblaze-b2');
@@ -38,7 +38,6 @@ Current functionality:
 
 
 const addProfilePicture = asyncHandler(async (req, res) => {
-  const _imagePurpose = 'profile_picture';
   const _attachedEmail = req.body.attachedEmail;
 
   if (!_attachedEmail) {
@@ -46,21 +45,102 @@ const addProfilePicture = asyncHandler(async (req, res) => {
   }
 
   // Find the existing image associated with the email
-  const existingImage = await Image.findOne({ attachedEmail: _attachedEmail }).exec();
+  const foundUser = await User.findOne({ email: _attachedEmail }).exec();
 
-  if (existingImage) {
+  if(!foundUser.profilePic){
+  try {
+    // Get the file data from Multer
+    const _uploadedImage = req.file.buffer;
+
+    // Ensure unique file name
+    const _fileName =
+      crypto.createHash('sha1').update(Date.now() + '_' + Math.floor(Math.random() * 11000) + '_' + foundUser.email).digest('hex') +
+      path.extname(req.file.originalname);
+
+    await b2.authorize();
+    const uploadUrlResponse = await b2.getUploadUrl({
+      bucketId: process.env.B2_BUCKET_ID,
+    });
+
+    const uploadResponse = await b2.uploadFile({
+      uploadUrl: uploadUrlResponse.data.uploadUrl,
+      uploadAuthToken: uploadUrlResponse.data.authorizationToken,
+      fileName: _fileName,
+      data: _uploadedImage,
+      onUploadProgress: (event) => {},
+    });
+
+    const _fileID = uploadResponse.data.fileId;
+
+    const result = foundUser.updateOne({profilePic:
+      {imageURL:'https://f005.backblazeb2.com/file/knightangel/' + _fileName,
+      fileID: _fileID,
+      fileName: _fileName,
+      uploadDate: new Date()}}).exec();
+      console.log(result)
+
+    res.status(201).json({ success: `Profile picture for ${_attachedEmail} uploaded.` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}else{
+  // Delete the old profile picture from Backblaze
+  await b2.authorize();
+  await b2.deleteFileVersion({
+    fileName: foundUser.profilePic.fileName,
+    fileId: foundUser.profilePic.fileID
+  });
+  try {
+    // Get the file data from Multer
+    const _uploadedImage = req.file.buffer;
+
+    // Ensure unique file name
+    const _fileName =
+      crypto.createHash('sha1').update(Date.now() + '_' + Math.floor(Math.random() * 11000) + '_' + foundUser.email).digest('hex') +
+      path.extname(req.file.originalname);
+
+    await b2.authorize();
+    const uploadUrlResponse = await b2.getUploadUrl({
+      bucketId: process.env.B2_BUCKET_ID,
+    });
+
+    const uploadResponse = await b2.uploadFile({
+      uploadUrl: uploadUrlResponse.data.uploadUrl,
+      uploadAuthToken: uploadUrlResponse.data.authorizationToken,
+      fileName: _fileName,
+      data: _uploadedImage,
+      onUploadProgress: (event) => {},
+    });
+
+    const _fileID = uploadResponse.data.fileId;
+
+    const result = foundUser.updateOne({profilePic:
+      {imageURL:'https://f005.backblazeb2.com/file/knightangel/' + _fileName,
+      fileID: _fileID,
+      fileName: _fileName,
+      uploadDate: new Date()}}).exec();
+      console.log(foundUser)
+
+    res.status(201).json({ success: `Profile picture for ${foundUser.email} updated.` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+  
+}
+
+/*   if (foundUser) {
     // Delete the old profile picture from Backblaze
     await b2.authorize();
     await b2.deleteFileVersion({
-      fileName: existingImage.fileName,
-      fileId: existingImage.fileID,
+      fileName: foundUser.fileName,
+      fileId: foundUser.fileID,
     });
 
     // Delete old document from MongoDB
     await Image.deleteOne({ attachedEmail: _attachedEmail }).exec();
-  }
+  } */
 
-  try {
+  /* try {
     // Get the file data from Multer
     const _uploadedImage = req.file.buffer;
 
@@ -84,7 +164,7 @@ const addProfilePicture = asyncHandler(async (req, res) => {
 
     const _fileID = uploadResponse.data.fileId;
 
-    const result = await Image.create({
+    const result = await User.create({
       imageURL: 'https://f005.backblazeb2.com/file/knightangel/' + _fileName,
       attachedEmail: _attachedEmail,
       imagePurpose: _imagePurpose,
@@ -95,7 +175,7 @@ const addProfilePicture = asyncHandler(async (req, res) => {
     res.status(201).json({ success: `Profile picture for ${_attachedEmail} uploaded.` });
   } catch (err) {
     res.status(500).json({ message: err.message });
-  }
+  } */
 });
 
 

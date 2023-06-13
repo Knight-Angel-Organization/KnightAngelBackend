@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const Image = require ("../model/Image");
 // Making a user schema with all the details required from the user 
 const Schema = mongoose.Schema;
 
@@ -7,13 +6,6 @@ const imageSchema = new Schema({
   imageURL: {
     type: String,
     required: false,
-  },
-  attachedEmail:{
-    type: String,
-    required: false
-  },
-  imagePurpose: {
-    type: String,
   },
   fileID: {
     type: String,
@@ -24,6 +16,7 @@ const imageSchema = new Schema({
   uploadDate: {
     type: Date,
     default: Date.now,
+    //stored in UTC yyyy-mm-dd hh:mm:ss.ns
   }
 })
 
@@ -38,8 +31,6 @@ const userSchema = new Schema({
         required: false
       },
       
-      profilePic: imageSchema,
-
       email: {
         type: String,
         required: true,
@@ -70,7 +61,9 @@ const userSchema = new Schema({
         type: String,
         required: false,
       },
-      refreshToken: [String] //having in array supports multidevice login
+      refreshToken: [String], //having in array supports multidevice login
+
+      profilePic: imageSchema
 })
 
 module.exports = mongoose.model("User", userSchema);
