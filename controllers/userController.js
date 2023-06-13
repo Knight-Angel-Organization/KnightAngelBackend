@@ -4,8 +4,8 @@ const bcrypt = require('bcrypt');
 const { json } = require('express');
 const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail')
+const multer = require('multer');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
@@ -160,5 +160,24 @@ const handleRefreshToken = asyncHandler(async (req,res) => {
     )
 })
 
+// Determine if the request is a multipart request
+// If it is, use multer to parse the request
+// If it is not, then continue as if it is a normal request (JSON Raw or x-www-form-urlencoded)
 
-module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken }
+// determineRequestType() should be run before any other function
+
+const determineRequestType = () => {
+    const multr = multer();
+  
+    return (req, res, next) => {
+      const contentType = req.headers['content-type'];
+  
+      if (contentType && contentType.includes('multipart/form-data')) {
+        multr.none()(req, res, next);
+      } else {
+        next();
+      }
+    };
+  };
+
+module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType() }
