@@ -5,6 +5,7 @@ const B2 = require('backblaze-b2');
 const crypto = require('crypto');
 const path = require('path');
 const { MongoClient, ObjectId } = require('mongodb');
+const { userInfo } = require('os');
 
 //const filetype = require('file-type');
 
@@ -127,75 +128,21 @@ const addProfilePicture = asyncHandler(async (req, res) => {
   }
   
 }
-
-/*   if (foundUser) {
-    // Delete the old profile picture from Backblaze
-    await b2.authorize();
-    await b2.deleteFileVersion({
-      fileName: foundUser.fileName,
-      fileId: foundUser.fileID,
-    });
-
-    // Delete old document from MongoDB
-    await Image.deleteOne({ attachedEmail: _attachedEmail }).exec();
-  } */
-
-  /* try {
-    // Get the file data from Multer
-    const _uploadedImage = req.file.buffer;
-
-    // Ensure unique file name
-    const _fileName =
-      crypto.createHash('sha1').update(Date.now() + '_' + Math.floor(Math.random() * 11000) + '_' + _attachedEmail).digest('hex') +
-      path.extname(req.file.originalname);
-
-    await b2.authorize();
-    const uploadUrlResponse = await b2.getUploadUrl({
-      bucketId: process.env.B2_BUCKET_ID,
-    });
-
-    const uploadResponse = await b2.uploadFile({
-      uploadUrl: uploadUrlResponse.data.uploadUrl,
-      uploadAuthToken: uploadUrlResponse.data.authorizationToken,
-      fileName: _fileName,
-      data: _uploadedImage,
-      onUploadProgress: (event) => {},
-    });
-
-    const _fileID = uploadResponse.data.fileId;
-
-    const result = await User.create({
-      imageURL: 'https://f005.backblazeb2.com/file/knightangel/' + _fileName,
-      attachedEmail: _attachedEmail,
-      imagePurpose: _imagePurpose,
-      fileID: _fileID,
-      fileName: _fileName,
-    });
-
-    res.status(201).json({ success: `Profile picture for ${_attachedEmail} uploaded.` });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  } */
 });
 
 
 const getProfilePicture = asyncHandler(async (req, res) => { 
-  const _imageID = req.body.imageID;
+  const _attachedEmail = req.body.attachedEmail;
 
-  if (!_imageID) {
-    return res.status(400).json({ 'message': 'Image ID is required.' });
+  if (!_attachedEmail) {
+    return res.status(400).json({ 'message': 'email is required.' });
   }
 
-  // Verify image ID is a string of 24 hex characters
-    if (!/^[0-9a-fA-F]{24}$/.test(_imageID)) {
-        return res.status(400).json({ 'message': 'Image ID is invalid.' });
-    }
+  const foundUser = await User.findOne({ email: _attachedEmail }).exec();
 
-  const imageFound = await Image.findOne({ _id: new ObjectId(_imageID) });
-
-  if (imageFound) {
+  if (foundUser.profilePic) {
     // Retrieve the URL
-    const _imageURL = imageFound.imageURL;
+    const _imageURL = foundUser.profilePic.imageURL;
     console.log(_imageURL); 
     return res.status(200).json({ 'success': _imageURL });
   } else {
