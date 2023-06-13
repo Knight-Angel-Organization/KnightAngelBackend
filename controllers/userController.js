@@ -2,6 +2,7 @@ const User = require('../model/User');
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcrypt');
 const { json } = require('express');
+const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail')
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
@@ -11,6 +12,10 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
     if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
     
+    // Make sure the email is valid, using validator package because regex had too many false positives and negatives
+
+    if(!validator.isEmail(emailIn)) return res.status(400).json({'message': 'Email address is invalid'});
+
     /*
      Password requirements:
         1. At least 8 characters long
