@@ -7,8 +7,6 @@ const sgMail = require('@sendgrid/mail')
 const multer = require('multer');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
-const upload = multer().none();
-
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
     if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
