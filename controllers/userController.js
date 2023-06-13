@@ -12,7 +12,29 @@ const upload = multer().none();
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
     if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
+
+    /*
+     Password requirements:
+        1. At least 8 characters long
+        2. At least 1 uppercase letter
+        3. At least 1 lowercase letter
+        4. At least 1 number
+        5. At least 1 special character
+        6. 64 characters maximum 
+    */ 
+
+    if(passwordIn.length < 8) return res.status(400).json({'message': 'Password must be at least 8 characters long'});
+    if(!passwordIn.match(/[A-Z]/)) return res.status(400).json({'message': 'Password must contain at least 1 uppercase letter'});
+    if(!passwordIn.match(/[a-z]/)) return res.status(400).json({'message': 'Password must contain at least 1 lowercase letter'});
+    if(!passwordIn.match(/[0-9]/)) return res.status(400).json({'message': 'Password must contain at least 1 number'});
+    if(!passwordIn.match(/[!@#$%^&*]/)) return res.status(400).json({'message': 'Password must contain at least 1 special character'});
+    if(passwordIn.length > 64) return res.status(400).json({'message': 'Password must be less than 64 characters long'});
+
+
+
+
     //duplication checking in DB
+    
     const duplicate = await User.findOne({email: emailIn}).exec();
     if (duplicate) return res.sendStatus(409);//conflict
     try{
