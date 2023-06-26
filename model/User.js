@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const ObjectId = mongoose.ObjectId;
 // Making a user schema with all the details required from the user 
 const Schema = mongoose.Schema;
 
@@ -18,6 +19,25 @@ const imageSchema = new Schema({
     default: Date.now,
     //stored in UTC yyyy-mm-dd hh:mm:ss.ns
   }
+})
+
+const emergencyContactSchema = new Schema({
+  
+  /* firstName: {
+    type: String,
+    required: false,
+  },
+  
+  lastName:{
+    type: String,
+    required: false
+  },
+  
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  } */
 })
 
 const userSchema = new Schema({
@@ -63,7 +83,9 @@ const userSchema = new Schema({
       },
       refreshToken: [String], //having in array supports multidevice login
 
-      profilePic: imageSchema
+      profilePic: imageSchema,
+
+      emergencyContact: emergencyContactSchema
 })
 
 module.exports = mongoose.model("User", userSchema);

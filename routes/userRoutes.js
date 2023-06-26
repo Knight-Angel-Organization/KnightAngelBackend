@@ -25,5 +25,8 @@ router.route('/twofactorconfirm')
 router.route('/profilepicture')
     .post(pictureController.upload, pictureController.addProfilePicture)
     .get(pictureController.getProfilePicture)
+
+router.route('/emergencycontact')
+    .post(userController.emergencyContacts)    
     
 module.exports = router

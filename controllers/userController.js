@@ -199,6 +199,23 @@ const determineRequestType = () => {
         next();
       }
     };
-  };
+};
 
-module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType() }
+const emergencyContacts = asyncHandler(async(req, res) => {
+    //change emailIn to something else later, as its only for testing RN. Route will only be ran when user is signed into app. 
+    const {emailIn, friendEmail} = req.body
+    if(emailIn == friendEmail) return res.status(405).json({message: `Enter a valid email. You entered ${friendEmail} as your friend's email.`});
+    const foundUser = await User.findOne({email: emailIn}).exec();
+    if(!foundUser.emergencyContact){
+        try{
+            const findFriend = await User.findOne({email:friendEmail}).exec();
+            //look at picture upload controller for an example on how to do multiple fields at the same time.
+            const result = foundUser.updateOne({emergencyContact:{_id:findFriend._id}}).exec();
+            res.status(201).json({success: `Emergency Contact ${findFriend.email} set for ${foundUser.email}`})
+        }
+        catch(err){
+            res.status(500).json({ message: err.message });
+        }
+    }
+})
+module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType(), emergencyContacts }
