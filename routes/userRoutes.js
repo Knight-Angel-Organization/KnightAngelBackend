@@ -29,4 +29,8 @@ router.route('/profilepicture')
 router.route('/emergencycontact')
     .post(userController.addEmergencyContact)    
     .delete(userController.deleteEmergencyContact)   
+
+router.route('/profile')
+    .get(userController.getProfile)
+
 module.exports = router
