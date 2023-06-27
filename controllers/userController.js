@@ -199,7 +199,8 @@ const determineRequestType = () => {
         next();
       }
     };
-  };
+};
+
 
  // Get user's profile
 
@@ -229,4 +230,35 @@ const getProfile = asyncHandler(async (req, res) => {
 
 });
 
-module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType(), getProfile }
+const emergencyContacts = asyncHandler(async(req, res) => {
+     //change emailIn to something else later, as its only for testing RN. Route will only be ran when user is signed into app. 
+    const {userEmail, friendEmail} = req.body
+    if(userEmail == friendEmail) return res.status(405).json({message: `You may not enter your own email address`});
+
+    const foundFriendsEmail = await User.findOne({email: friendEmail}).exec();
+    const foundUserEmail = await User.findOne({email: userEmail}).exec();
+ /*
+    Data validation
+    Checks for:
+    1. Friend's email address is found in the database
+    2. User's email address is found in the database
+    3. Friend's email address is not already in the user's emergency contacts
+    4. User has less than 10 emergency contacts    */
+
+    if (!foundFriendsEmail) return res.status(404).json({message: `Friend's email address is not found`});
+    if (!foundUserEmail) return res.status(404).json({message: `User's email address not found`});
+    if (foundUserEmail.emergencyContacts.includes(foundFriendsEmail.email)) return res.status(409).json({message: `Friend's contact already added`});
+    if (foundUserEmail.emergencyContacts.length >= 10) return res.status(403).json({message: `You may only have up to 10 emergency contacts`});
+
+    // Functionality for adding the emergency contact
+
+    foundUserEmail.emergencyContacts.push(foundFriendsEmail.email);
+    const result = await foundUserEmail.save();
+    console.log(result);
+    res.status(201).json({success: `Emergency Contact ${foundFriendsEmail.email} set for ${foundUserEmail.email}`})
+
+
+
+})
+module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType(), getProfile, emergencyContacts }
+

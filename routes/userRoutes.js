@@ -25,6 +25,9 @@ router.route('/twofactorconfirm')
 router.route('/profilepicture')
     .post(pictureController.upload, pictureController.addProfilePicture)
     .get(pictureController.getProfilePicture)
+
+router.route('/emergencycontact')
+    .post(userController.emergencyContacts)    
     
 router.route('/profile')
     .get(userController.getProfile)
