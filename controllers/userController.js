@@ -202,41 +202,19 @@ const determineRequestType = () => {
 };
 
 const emergencyContacts = asyncHandler(async(req, res) => {
-   
-/*   
-    //change emailIn to something else later, as its only for testing RN. Route will only be ran when user is signed into app. 
-    const {emailIn, friendEmail} = req.body
-    if(emailIn == friendEmail) return res.status(405).json({message: `Enter a valid email. You entered ${friendEmail} as your friend's email.`});
-    const foundUser = await User.findOne({email: emailIn}).exec();
-    
-    if(!foundUser.emergencyContact){
-        try{
-            const findFriend = await User.findOne({email:friendEmail}).exec();
-            //look at picture upload controller for an example on how to do multiple fields at the same time.
-            const result = foundUser.updateOne({emergencyContact:{_id:findFriend._id}}).exec();
-            res.status(201).json({success: `Emergency Contact ${findFriend.email} set for ${foundUser.email}`})
-        }
-        catch(err){
-            res.status(500).json({ message: err.message });
-        }
-    }
-*/
+     //change emailIn to something else later, as its only for testing RN. Route will only be ran when user is signed into app. 
     const {userEmail, friendEmail} = req.body
     if(userEmail == friendEmail) return res.status(405).json({message: `You may not enter your own email address`});
 
     const foundFriendsEmail = await User.findOne({email: friendEmail}).exec();
     const foundUserEmail = await User.findOne({email: userEmail}).exec();
-
-    /*
-    
+ /*
     Data validation
     Checks for:
     1. Friend's email address is found in the database
     2. User's email address is found in the database
     3. Friend's email address is not already in the user's emergency contacts
-    4. User has less than 10 emergency contacts
-
-    */
+    4. User has less than 10 emergency contacts    */
 
     if (!foundFriendsEmail) return res.status(404).json({message: `Friend's email address is not found`});
     if (!foundUserEmail) return res.status(404).json({message: `User's email address not found`});
