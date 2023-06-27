@@ -20,11 +20,8 @@ const b2 = new B2({
   }
 });
 
-
 /*
-
 Current functionality:
-
 1. Uploads a profile picture to Backblaze B2 and stores the required info in MongoDB
 - Checks for pre-existing profile picture and deletes old one from Backblaze and MongoDB
 - Returns a success message if the upload was successful
@@ -34,9 +31,7 @@ Current functionality:
 - Todo:
   - Verify the image is legitimately an image and only allow JPG, JPEG, and PNG
   Will refactor later.
-
 */
-
 
 const addProfilePicture = asyncHandler(async (req, res) => {
   const _attachedEmail = req.body.attachedEmail;
@@ -129,7 +124,6 @@ const addProfilePicture = asyncHandler(async (req, res) => {
   
 }
 });
-
 
 const getProfilePicture = asyncHandler(async (req, res) => { 
   const _attachedEmail = req.body.attachedEmail;

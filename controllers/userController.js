@@ -15,7 +15,6 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
     // Make sure the email is valid, using validator package because regex had too many false positives and negatives
 
     if(!validator.isEmail(emailIn)) return res.status(400).json({'message': 'Email address is invalid'});
-
     /*
      Password requirements:
         1. At least 8 characters long
@@ -25,20 +24,13 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
         5. At least 1 special character
         6. 64 characters maximum 
     */ 
-
     if(passwordIn.length < 8) return res.status(400).json({'message': 'Password must be at least 8 characters long'});
     if(!passwordIn.match(/[A-Z]/)) return res.status(400).json({'message': 'Password must contain at least 1 uppercase letter'});
     if(!passwordIn.match(/[a-z]/)) return res.status(400).json({'message': 'Password must contain at least 1 lowercase letter'});
     if(!passwordIn.match(/[0-9]/)) return res.status(400).json({'message': 'Password must contain at least 1 number'});
     if(!passwordIn.match(/[!@#$%^&*]/)) return res.status(400).json({'message': 'Password must contain at least 1 special character'});
     if(passwordIn.length > 64) return res.status(400).json({'message': 'Password must be less than 64 characters long'});
-
-
-
-
-    
-    
-    
+     
     //duplication checking in DB
     const duplicate = await User.findOne({email: emailIn}).exec();
     if (duplicate) return res.sendStatus(409);//conflict
@@ -51,8 +43,8 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
             lastName: lnIn,
             email : emailIn,
             password : hashedPwd,
-            /* SecQue: sqIn,
-            SQA: sqaIn */
+            SecQue: sqIn,
+            SQA: sqaIn
         })
         console.log(result);
         res.status(201).json({'success': `New User created with ${emailIn}`});
