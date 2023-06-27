@@ -2,14 +2,35 @@ const User = require('../model/User');
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcrypt');
 const { json } = require('express');
+const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail')
+const multer = require('multer');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
     if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
+    
+    // Make sure the email is valid, using validator package because regex had too many false positives and negatives
+
+    if(!validator.isEmail(emailIn)) return res.status(400).json({'message': 'Email address is invalid'});
+    /*
+     Password requirements:
+        1. At least 8 characters long
+        2. At least 1 uppercase letter
+        3. At least 1 lowercase letter
+        4. At least 1 number
+        5. At least 1 special character
+        6. 64 characters maximum 
+    */ 
+    if(passwordIn.length < 8) return res.status(400).json({'message': 'Password must be at least 8 characters long'});
+    if(!passwordIn.match(/[A-Z]/)) return res.status(400).json({'message': 'Password must contain at least 1 uppercase letter'});
+    if(!passwordIn.match(/[a-z]/)) return res.status(400).json({'message': 'Password must contain at least 1 lowercase letter'});
+    if(!passwordIn.match(/[0-9]/)) return res.status(400).json({'message': 'Password must contain at least 1 number'});
+    if(!passwordIn.match(/[!@#$%^&*]/)) return res.status(400).json({'message': 'Password must contain at least 1 special character'});
+    if(passwordIn.length > 64) return res.status(400).json({'message': 'Password must be less than 64 characters long'});
+     
     //duplication checking in DB
     const duplicate = await User.findOne({email: emailIn}).exec();
     if (duplicate) return res.sendStatus(409);//conflict
@@ -22,8 +43,8 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
             lastName: lnIn,
             email : emailIn,
             password : hashedPwd,
-            /* SecQue: sqIn,
-            SQA: sqaIn */
+            SecQue: sqIn,
+            SQA: sqaIn
         })
         console.log(result);
         res.status(201).json({'success': `New User created with ${emailIn}`});
@@ -160,5 +181,84 @@ const handleRefreshToken = asyncHandler(async (req,res) => {
     )
 })
 
+// Determine if the request is a multipart request
+// If it is, use multer to parse the request
+// If it is not, then continue as if it is a normal request (JSON Raw or x-www-form-urlencoded)
 
-module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken }
+// determineRequestType() should be run before any other function
+
+const determineRequestType = () => {
+    const multr = multer();
+  
+    return (req, res, next) => {
+      const contentType = req.headers['content-type'];
+  
+      if (contentType && contentType.includes('multipart/form-data')) {
+        multr.none()(req, res, next);
+      } else {
+        next();
+      }
+    };
+};
+
+
+ // Get user's profile
+
+const getProfile = asyncHandler(async (req, res) => {
+    const { userID } = req.body;
+
+    // Check if userID is provided
+
+    if (!userID) return res.status(400).json({ message: 'userID field is required' });
+
+    // Check if userID exists
+
+    const foundUser = await User.findOne({ _id: userID }).exec();
+
+    if (!foundUser) return res.status(404).json({ message: 'User not found' });
+
+    // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
+
+    if (foundUser.profilePic) {
+        const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
+        res.status(200).json({ profile: { firstName, lastName, imageURL } });
+    } else {
+        const { firstName, lastName, email } = foundUser;
+        const imageURL = 'https://f005.backblazeb2.com/file/knightangel/default-profile-picture.png';
+        res.status(200).json({ profile: { firstName, lastName, imageURL } });
+    }
+
+});
+
+const emergencyContacts = asyncHandler(async(req, res) => {
+     //change emailIn to something else later, as its only for testing RN. Route will only be ran when user is signed into app. 
+    const {userEmail, friendEmail} = req.body
+    if(userEmail == friendEmail) return res.status(405).json({message: `You may not enter your own email address`});
+
+    const foundFriendsEmail = await User.findOne({email: friendEmail}).exec();
+    const foundUserEmail = await User.findOne({email: userEmail}).exec();
+ /*
+    Data validation
+    Checks for:
+    1. Friend's email address is found in the database
+    2. User's email address is found in the database
+    3. Friend's email address is not already in the user's emergency contacts
+    4. User has less than 10 emergency contacts    */
+
+    if (!foundFriendsEmail) return res.status(404).json({message: `Friend's email address is not found`});
+    if (!foundUserEmail) return res.status(404).json({message: `User's email address not found`});
+    if (foundUserEmail.emergencyContacts.includes(foundFriendsEmail.email)) return res.status(409).json({message: `Friend's contact already added`});
+    if (foundUserEmail.emergencyContacts.length >= 10) return res.status(403).json({message: `You may only have up to 10 emergency contacts`});
+
+    // Functionality for adding the emergency contact
+
+    foundUserEmail.emergencyContacts.push(foundFriendsEmail.email);
+    const result = await foundUserEmail.save();
+    console.log(result);
+    res.status(201).json({success: `Emergency Contact ${foundFriendsEmail.email} set for ${foundUserEmail.email}`})
+
+
+
+})
+module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType(), getProfile, emergencyContacts }
+

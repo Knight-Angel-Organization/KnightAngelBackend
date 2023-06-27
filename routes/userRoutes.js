@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const sendGrid = require('../utils/sendGrid');
+const pictureController = require('../controllers/pictureController');
 
 
 router.route('/register')
@@ -20,5 +21,15 @@ router.route('/twofactor')
 
 router.route('/twofactorconfirm')
     .post(sendGrid.ConfirmTwoFAEmail)    
+
+router.route('/profilepicture')
+    .post(pictureController.upload, pictureController.addProfilePicture)
+    .get(pictureController.getProfilePicture)
+
+router.route('/emergencycontact')
+    .post(userController.emergencyContacts)    
+    
+router.route('/profile')
+    .get(userController.getProfile)
 
 module.exports = router
