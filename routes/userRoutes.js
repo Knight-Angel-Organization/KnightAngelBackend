@@ -27,6 +27,6 @@ router.route('/profilepicture')
     .get(pictureController.getProfilePicture)
 
 router.route('/emergencycontact')
-    .post(userController.emergencyContacts)    
-    
+    .post(userController.addEmergencyContact)    
+    .delete(userController.deleteEmergencyContact)   
 module.exports = router
