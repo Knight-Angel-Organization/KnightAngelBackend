@@ -29,4 +29,7 @@ router.route('/profilepicture')
 router.route('/emergencycontact')
     .post(userController.emergencyContacts)    
     
+router.route('/profile')
+    .get(userController.getProfile)
+
 module.exports = router
