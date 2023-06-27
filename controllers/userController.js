@@ -201,7 +201,26 @@ const determineRequestType = () => {
     };
 };
 
-const emergencyContacts = asyncHandler(async(req, res) => {
+const deleteEmergencyContact = asyncHandler(async(req, res) => {
+
+    const {userEmail, friendEmail} = req.body
+    if(userEmail == friendEmail) return res.status(405).json({message: `You may not enter your own email address`});
+
+    const foundFriendsEmail = await User.findOne({email: friendEmail}).exec();
+    const foundUserEmail = await User.findOne({email: userEmail}).exec();
+
+    if (!foundFriendsEmail) return res.status(404).json({message: `Friend's email address is not found`});
+    if (!foundUserEmail) return res.status(404).json({message: `User's email address not found`});
+    if (!foundUserEmail.emergencyContacts.includes(foundFriendsEmail.email)) return res.status(404).json({message: `Friend's email address is not in your emergency contacts`});
+
+    foundUserEmail.emergencyContacts = foundUserEmail.emergencyContacts.filter(contact => contact !== foundFriendsEmail.email);
+    const result = await foundUserEmail.save();
+    console.log(result);
+    res.status(200).json({success: `Emergency Contact ${foundFriendsEmail.email} removed from ${foundUserEmail.email}`})
+
+})
+
+const addEmergencyContact = asyncHandler(async(req, res) => {
      //change emailIn to something else later, as its only for testing RN. Route will only be ran when user is signed into app. 
     const {userEmail, friendEmail} = req.body
     if(userEmail == friendEmail) return res.status(405).json({message: `You may not enter your own email address`});
@@ -229,5 +248,4 @@ const emergencyContacts = asyncHandler(async(req, res) => {
     res.status(201).json({success: `Emergency Contact ${foundFriendsEmail.email} set for ${foundUserEmail.email}`})
 
 })
-module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType(), getProfile, addEmergencyContact, deleteEmergencyContact }
-
+module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType(), addEmergencyContact, deleteEmergencyContact }
