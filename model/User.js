@@ -21,9 +21,10 @@ const imageSchema = new Schema({
   }
 })
 
+/*
 const emergencyContactSchema = new Schema({
   
-  /* firstName: {
+  firstName: {
     type: String,
     required: false,
   },
@@ -37,8 +38,11 @@ const emergencyContactSchema = new Schema({
     type: String,
     required: true,
     unique: true,
-  } */
-})
+  }, 
+
+
+}) 
+*/
 
 const userSchema = new Schema({
     firstName: {
@@ -85,7 +89,7 @@ const userSchema = new Schema({
 
       profilePic: imageSchema,
 
-      emergencyContact: emergencyContactSchema
+      emergencyContacts: [String]
 })
 
 module.exports = mongoose.model("User", userSchema);
