@@ -26,4 +26,7 @@ router.route('/profilepicture')
     .post(pictureController.upload, pictureController.addProfilePicture)
     .get(pictureController.getProfilePicture)
     
+router.route('/profile')
+    .get(userController.getProfile)
+
 module.exports = router
