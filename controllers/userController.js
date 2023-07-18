@@ -43,8 +43,9 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
             lastName: lnIn,
             email : emailIn,
             password : hashedPwd,
-            SecQue: sqIn,
-            SQA: sqaIn
+            //remove comments when ready to fully deploy
+            /*SecQue: sqIn,
+            SQA: sqaIn*/
         })
         console.log(result);
         res.status(201).json({'success': `New User created with ${emailIn}`});
