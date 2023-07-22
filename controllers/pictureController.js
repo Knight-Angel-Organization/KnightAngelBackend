@@ -37,7 +37,7 @@ const addProfilePicture = asyncHandler(async (req, res) => {
   const _attachedEmail = req.body.attachedEmail;
 
   if (!_attachedEmail) {
-    return res.status(400).json({ message: 'Email is required.' });
+    return res.status(450).json({ message: 'Email is required.' });
   }
 
   // Find the existing image associated with the email
@@ -129,7 +129,7 @@ const getProfilePicture = asyncHandler(async (req, res) => {
   const _attachedEmail = req.body.attachedEmail;
 
   if (!_attachedEmail) {
-    return res.status(400).json({ 'message': 'email is required.' });
+    return res.status(450).json({ 'message': 'email is required.' });
   }
 
   const foundUser = await User.findOne({ email: _attachedEmail }).exec();
@@ -140,7 +140,7 @@ const getProfilePicture = asyncHandler(async (req, res) => {
     console.log(_imageURL); 
     return res.status(200).json({ 'success': _imageURL });
   } else {
-    return res.status(400).json({ 'message': 'Image ID not found.' });
+    return res.status(480).json({ 'message': 'Image ID not found.' });
   }
 });
 

@@ -8,13 +8,33 @@ const sgMail = require('@sendgrid/mail')
 const multer = require('multer');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
+
+/*
+
+Custom HTTP Status Codes:
+
+450 - Email address is invalid
+451 - Password must be at least 8 characters long
+452 - Password must contain at least 1 uppercase letter
+453 - Password must contain at least 1 lowercase letter
+454 - Password must contain at least 1 number
+455 - Password must contain at least 1 special character
+456 - Password must be less than 64 characters long
+457 - Email & password are required
+458 - userID field is required
+459 - Full name, email, password, Security Question & Answer are required
+461 - Email address is already in use
+480 - Image ID not found
+
+*/
+
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
-    if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
+    if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(459).json({'message': 'Full name, email, password, Security Question & Answer are required'});
     
     // Make sure the email is valid, using validator package because regex had too many false positives and negatives
 
-    if(!validator.isEmail(emailIn)) return res.status(400).json({'message': 'Email address is invalid'});
+    if(!validator.isEmail(emailIn)) return res.status(450).json({'message': 'Email address is invalid'});
     /*
      Password requirements:
         1. At least 8 characters long
@@ -24,12 +44,12 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
         5. At least 1 special character
         6. 64 characters maximum 
     */ 
-    if(passwordIn.length < 8) return res.status(400).json({'message': 'Password must be at least 8 characters long'});
-    if(!passwordIn.match(/[A-Z]/)) return res.status(400).json({'message': 'Password must contain at least 1 uppercase letter'});
-    if(!passwordIn.match(/[a-z]/)) return res.status(400).json({'message': 'Password must contain at least 1 lowercase letter'});
-    if(!passwordIn.match(/[0-9]/)) return res.status(400).json({'message': 'Password must contain at least 1 number'});
-    if(!passwordIn.match(/[!@#$%^&*]/)) return res.status(400).json({'message': 'Password must contain at least 1 special character'});
-    if(passwordIn.length > 64) return res.status(400).json({'message': 'Password must be less than 64 characters long'});
+    if(passwordIn.length < 8) return res.status(451).json({'message': 'Password must be at least 8 characters long'});
+    if(!passwordIn.match(/[A-Z]/)) return res.status(452).json({'message': 'Password must contain at least 1 uppercase letter'});
+    if(!passwordIn.match(/[a-z]/)) return res.status(453).json({'message': 'Password must contain at least 1 lowercase letter'});
+    if(!passwordIn.match(/[0-9]/)) return res.status(454).json({'message': 'Password must contain at least 1 number'});
+    if(!passwordIn.match(/[!@#$%^&*]/)) return res.status(455).json({'message': 'Password must contain at least 1 special character'});
+    if(passwordIn.length > 64) return res.status(456).json({'message': 'Password must be less than 64 characters long'});
      
     //duplication checking in DB
     const duplicate = await User.findOne({email: emailIn}).exec();
@@ -57,7 +77,7 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
 const handleLogin = asyncHandler(async (req,res) => {
     const cookies = req.cookies;
     const {emailIn, passwordIn} = req.body;
-    if(!emailIn || !passwordIn) return res.status(400).json({'message': 'email & password are required'});
+    if(!emailIn || !passwordIn) return res.status(457).json({'message': 'email & password are required'});
     const foundUser = await User.findOne({email: emailIn}).exec();
     if(!foundUser) return res.sendStatus(401); //Unauthorized
     //eval. password
@@ -210,7 +230,7 @@ const getProfile = asyncHandler(async (req, res) => {
 
     // Check if userID is provided
 
-    if (!userID) return res.status(400).json({ message: 'userID field is required' });
+    if (!userID) return res.status(458).json({ message: 'userID field is required' });
 
     // Check if userID exists
 
