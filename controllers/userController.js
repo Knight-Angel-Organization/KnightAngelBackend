@@ -20,17 +20,12 @@ Custom HTTP Status Codes:
 454 - Password must contain at least 1 number
 455 - Password must contain at least 1 special character
 456 - Password must be less than 64 characters long
-457 - Email & password are required
-458 - userID field is required
-459 - Full name, email, password, Security Question & Answer are required
-461 - Email address is already in use
-480 - Image ID not found
 
 */
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
-    if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(459).json({'message': 'Full name, email, password, Security Question & Answer are required'});
+    if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
     
     // Make sure the email is valid, using validator package because regex had too many false positives and negatives
 
@@ -77,7 +72,7 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
 const handleLogin = asyncHandler(async (req,res) => {
     const cookies = req.cookies;
     const {emailIn, passwordIn} = req.body;
-    if(!emailIn || !passwordIn) return res.status(457).json({'message': 'email & password are required'});
+    if(!emailIn || !passwordIn) return res.status(400).json({'message': 'email & password are required'});
     const foundUser = await User.findOne({email: emailIn}).exec();
     if(!foundUser) return res.sendStatus(401); //Unauthorized
     //eval. password
@@ -230,7 +225,7 @@ const getProfile = asyncHandler(async (req, res) => {
 
     // Check if userID is provided
 
-    if (!userID) return res.status(458).json({ message: 'userID field is required' });
+    if (!userID) return res.status(400).json({ message: 'userID field is required' });
 
     // Check if userID exists
 

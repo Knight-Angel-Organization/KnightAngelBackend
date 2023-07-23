@@ -140,7 +140,7 @@ const getProfilePicture = asyncHandler(async (req, res) => {
     console.log(_imageURL); 
     return res.status(200).json({ 'success': _imageURL });
   } else {
-    return res.status(480).json({ 'message': 'Image ID not found.' });
+    return res.status(400).json({ 'message': 'Image ID not found.' });
   }
 });
 
