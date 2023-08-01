@@ -6,6 +6,7 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail')
 const multer = require('multer');
+const cookieParser = require('cookie-parser');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
@@ -86,7 +87,7 @@ const handleLogin = asyncHandler(async (req,res) => {
                 ? foundUser.refreshToken
                 :foundUser.refreshToken.filter(newRT => newRT !== cookies.jwt);
         if(cookies?.jwt){
-            res.clearCookie('jwt', {httpOnly: true, sameSite: 'None', /* secure: true */});
+            res.clearCookie('jwt', {httpOnly: false, sameSite: 'None', /* secure: true */});
         };
 
         //saves refresh token to current user
@@ -95,7 +96,7 @@ const handleLogin = asyncHandler(async (req,res) => {
         console.log(result);
         
         //secure cookie w/ refresh token
-        res.cookie('jwt', NewRefreshToken, {httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000});
+        res.cookie('jwt', NewRefreshToken, {httpOnly: false, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000});
         res.json({accessToken});
     }else{
         res.sendStatus(401)
@@ -206,15 +207,16 @@ const determineRequestType = () => {
  // Get user's profile
 
 const getProfile = asyncHandler(async (req, res) => {
-    const { storedRefreshToken } = req.body;
+    const cookieTest = req.cookies;
+    const JWTValue = cookieTest.jwt
 
-    // Check if userID is provided
+   // Check if userID is provided
 
-    if (!storedRefreshToken) return res.status(400).json({ message: 'User not signed in' });
+    if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
 
     // Check if userID exists
 
-    const foundUser = await User.findOne({ refreshToken: storedRefreshToken }).exec();
+    const foundUser = await User.findOne({ refreshToken: JWTValue }).exec();
 
     if (!foundUser) return res.status(404).json({ message: 'User not found' });
 
