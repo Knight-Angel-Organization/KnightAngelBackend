@@ -208,10 +208,6 @@ const determineRequestType = () => {
 const getProfile = asyncHandler(async (req, res) => {  
     const HTTPMethod = req.method;
 
-const getProfile = asyncHandler(async (req, res) => {
-    const cookieTest = req.cookies;
-    const JWTValue = cookieTest.jwt
-
     if (HTTPMethod === 'GET'){
     //retrives cookies if trying to look at own profile.
     const allCookies = req.cookies;
