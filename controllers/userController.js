@@ -206,15 +206,15 @@ const determineRequestType = () => {
  // Get user's profile
 
 const getProfile = asyncHandler(async (req, res) => {
-    const { userID } = req.body;
+    const { storedRefreshToken } = req.body;
 
     // Check if userID is provided
 
-    if (!userID) return res.status(400).json({ message: 'userID field is required' });
+    if (!storedRefreshToken) return res.status(400).json({ message: 'User not signed in' });
 
     // Check if userID exists
 
-    const foundUser = await User.findOne({ _id: userID }).exec();
+    const foundUser = await User.findOne({ refreshToken: storedRefreshToken }).exec();
 
     if (!foundUser) return res.status(404).json({ message: 'User not found' });
 
