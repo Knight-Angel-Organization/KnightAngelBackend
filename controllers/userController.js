@@ -13,7 +13,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 Custom HTTP Status Codes:
 400 - General input error 
-452 - Invalid email address issue (fromat or in use)
+452 - Invalid email address issue (fromat)
 453 - Password length issue
 454 - Password complexity issue
 
@@ -26,6 +26,7 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
     // Make sure the email is valid, using validator package because regex had too many false positives and negatives
 
     if(!validator.isEmail(emailIn)) return res.status(452).json({'message': 'Email address is invalid'});
+
     /*
      Password requirements:
         1. At least 8 characters long
@@ -35,6 +36,7 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
         5. At least 1 special character
         6. 64 characters maximum 
     */ 
+   
     if(passwordIn.length < 8) return res.status(453).json({'message': 'Password must be at least 8 characters long'});
     if(!passwordIn.match(/[A-Z]/)) return res.status(454).json({'message': 'Password must contain at least 1 uppercase letter'});
     if(!passwordIn.match(/[a-z]/)) return res.status(454).json({'message': 'Password must contain at least 1 lowercase letter'});
