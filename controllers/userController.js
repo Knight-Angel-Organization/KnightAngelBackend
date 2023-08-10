@@ -227,6 +227,12 @@ const getProfile = asyncHandler(async (req, res) => {
         res.status(200).json({ profile: { firstName, lastName, imageURL } });
     }
     }else if (HTTPMethod === 'POST'){
+        //retrives cookies to confirm user is signed in.
+        const allCookies = req.cookies;
+        const JWTValue = allCookies.jwt
+
+        if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+        //change to something else that will identify other users in different locations(feed page, services, etc.)
         const {emailIn} = req.body;
         const foundUser = await User.findOne({email: emailIn }).exec();
         if (!foundUser) return res.status(404).json({ message: 'User not found' });
