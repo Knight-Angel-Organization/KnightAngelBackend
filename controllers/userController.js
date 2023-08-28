@@ -13,7 +13,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 Custom HTTP Status Codes:
 400 - General input error 
-452 - Invalid email address issue (fromat)
+452 - Invalid email address issue (format)
 453 - Password length issue
 454 - Password complexity issue
 
