@@ -9,13 +9,25 @@ const multer = require('multer');
 const cookieParser = require('cookie-parser');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
+
+/*
+
+Custom HTTP Status Codes:
+400 - General input error 
+452 - Invalid email address issue (format)
+453 - Password length issue
+454 - Password complexity issue
+
+*/
+
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
     if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
     
     // Make sure the email is valid, using validator package because regex had too many false positives and negatives
 
-    if(!validator.isEmail(emailIn)) return res.status(400).json({'message': 'Email address is invalid'});
+    if(!validator.isEmail(emailIn)) return res.status(452).json({'message': 'Email address is invalid'});
+
     /*
      Password requirements:
         1. At least 8 characters long
@@ -25,12 +37,13 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
         5. At least 1 special character
         6. 64 characters maximum 
     */ 
-    if(passwordIn.length < 8) return res.status(400).json({'message': 'Password must be at least 8 characters long'});
-    if(!passwordIn.match(/[A-Z]/)) return res.status(400).json({'message': 'Password must contain at least 1 uppercase letter'});
-    if(!passwordIn.match(/[a-z]/)) return res.status(400).json({'message': 'Password must contain at least 1 lowercase letter'});
-    if(!passwordIn.match(/[0-9]/)) return res.status(400).json({'message': 'Password must contain at least 1 number'});
-    if(!passwordIn.match(/[!@#$%^&*]/)) return res.status(400).json({'message': 'Password must contain at least 1 special character'});
-    if(passwordIn.length > 64) return res.status(400).json({'message': 'Password must be less than 64 characters long'});
+   
+    if(passwordIn.length < 8) return res.status(453).json({'message': 'Password must be at least 8 characters long'});
+    if(!passwordIn.match(/[A-Z]/)) return res.status(454).json({'message': 'Password must contain at least 1 uppercase letter'});
+    if(!passwordIn.match(/[a-z]/)) return res.status(454).json({'message': 'Password must contain at least 1 lowercase letter'});
+    if(!passwordIn.match(/[0-9]/)) return res.status(454).json({'message': 'Password must contain at least 1 number'});
+    if(!passwordIn.match(/[!@#$%^&*]/)) return res.status(454).json({'message': 'Password must contain at least 1 special character'});
+    if(passwordIn.length > 64) return res.status(453).json({'message': 'Password must be less than 64 characters long'});
      
     //duplication checking in DB
     const duplicate = await User.findOne({email: emailIn}).exec();
@@ -253,7 +266,7 @@ const getProfile = asyncHandler(async (req, res) => {
 const emergencyContacts = asyncHandler(async(req, res) => {
      //change emailIn to something else later, as its only for testing RN. Route will only be ran when user is signed into app. 
     const {userEmail, friendEmail} = req.body
-    if(userEmail == friendEmail) return res.status(405).json({message: `You may not enter your own email address`});
+    if(userEmail == friendEmail) return res.status(452).json({message: `You may not enter your own email address`});
 
     const foundFriendsEmail = await User.findOne({email: friendEmail}).exec();
     const foundUserEmail = await User.findOne({email: userEmail}).exec();
