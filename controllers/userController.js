@@ -6,6 +6,7 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail')
 const multer = require('multer');
+const cookieParser = require('cookie-parser');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
@@ -86,7 +87,7 @@ const handleLogin = asyncHandler(async (req,res) => {
                 ? foundUser.refreshToken
                 :foundUser.refreshToken.filter(newRT => newRT !== cookies.jwt);
         if(cookies?.jwt){
-            res.clearCookie('jwt', {httpOnly: true, sameSite: 'None', /* secure: true */});
+            res.clearCookie('jwt', {httpOnly: false, sameSite: 'None', /* secure: true */});
         };
 
         //saves refresh token to current user
@@ -95,7 +96,7 @@ const handleLogin = asyncHandler(async (req,res) => {
         console.log(result);
         
         //secure cookie w/ refresh token
-        res.cookie('jwt', NewRefreshToken, {httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000});
+        res.cookie('jwt', NewRefreshToken, {httpOnly: false, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000});
         res.json({accessToken});
     }else{
         res.sendStatus(401)
@@ -203,23 +204,20 @@ const determineRequestType = () => {
 };
 
 
- // Get user's profile
+// Get user's profile
+const getProfile = asyncHandler(async (req, res) => {  
+    const HTTPMethod = req.method;
 
-const getProfile = asyncHandler(async (req, res) => {
-    const { userID } = req.body;
+    if (HTTPMethod === 'GET'){
+    //retrives cookies if trying to look at own profile.
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt
 
-    // Check if userID is provided
-
-    if (!userID) return res.status(400).json({ message: 'userID field is required' });
-
-    // Check if userID exists
-
-    const foundUser = await User.findOne({ _id: userID }).exec();
+    if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+    const foundUser = await User.findOne({ refreshToken: JWTValue }).exec();
 
     if (!foundUser) return res.status(404).json({ message: 'User not found' });
-
     // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
-
     if (foundUser.profilePic) {
         const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
         res.status(200).json({ profile: { firstName, lastName, imageURL } });
@@ -228,7 +226,28 @@ const getProfile = asyncHandler(async (req, res) => {
         const imageURL = 'https://f005.backblazeb2.com/file/knightangel/default-profile-picture.png';
         res.status(200).json({ profile: { firstName, lastName, imageURL } });
     }
+    }else if (HTTPMethod === 'POST'){
+        //retrives cookies to confirm user is signed in.
+        const allCookies = req.cookies;
+        const JWTValue = allCookies.jwt
 
+        if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+        //change to something else that will identify other users in different locations(feed page, services, etc.)
+        const {emailIn} = req.body;
+        const foundUser = await User.findOne({email: emailIn }).exec();
+        if (!foundUser) return res.status(404).json({ message: 'User not found' });
+
+        // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
+
+        if (foundUser.profilePic) {
+            const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
+            res.status(200).json({ profile: { firstName, lastName, imageURL } });
+        } else {
+            const { firstName, lastName, email } = foundUser;
+            const imageURL = 'https://f005.backblazeb2.com/file/knightangel/default-profile-picture.png';
+            res.status(200).json({ profile: { firstName, lastName, imageURL } });
+        }
+    }
 });
 
 const emergencyContacts = asyncHandler(async(req, res) => {
