@@ -31,6 +31,5 @@ router.route('/emergencycontact')
     
 router.route('/profile')
     .get(userController.getProfile)
-    .post(userController.getProfile)
 
 module.exports = router

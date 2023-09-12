@@ -6,19 +6,7 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail')
 const multer = require('multer');
-const cookieParser = require('cookie-parser');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-
-
-/*
-
-Custom HTTP Status Codes:
-400 - General input error 
-452 - Invalid email address issue (format)
-453 - Password length issue
-454 - Password complexity issue
-
-*/
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
@@ -26,8 +14,7 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
     
     // Make sure the email is valid, using validator package because regex had too many false positives and negatives
 
-    if(!validator.isEmail(emailIn)) return res.status(452).json({'message': 'Email address is invalid'});
-
+    if(!validator.isEmail(emailIn)) return res.status(400).json({'message': 'Email address is invalid'});
     /*
      Password requirements:
         1. At least 8 characters long
@@ -37,13 +24,12 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
         5. At least 1 special character
         6. 64 characters maximum 
     */ 
-   
-    if(passwordIn.length < 8) return res.status(453).json({'message': 'Password must be at least 8 characters long'});
-    if(!passwordIn.match(/[A-Z]/)) return res.status(454).json({'message': 'Password must contain at least 1 uppercase letter'});
-    if(!passwordIn.match(/[a-z]/)) return res.status(454).json({'message': 'Password must contain at least 1 lowercase letter'});
-    if(!passwordIn.match(/[0-9]/)) return res.status(454).json({'message': 'Password must contain at least 1 number'});
-    if(!passwordIn.match(/[!@#$%^&*]/)) return res.status(454).json({'message': 'Password must contain at least 1 special character'});
-    if(passwordIn.length > 64) return res.status(453).json({'message': 'Password must be less than 64 characters long'});
+    if(passwordIn.length < 8) return res.status(400).json({'message': 'Password must be at least 8 characters long'});
+    if(!passwordIn.match(/[A-Z]/)) return res.status(400).json({'message': 'Password must contain at least 1 uppercase letter'});
+    if(!passwordIn.match(/[a-z]/)) return res.status(400).json({'message': 'Password must contain at least 1 lowercase letter'});
+    if(!passwordIn.match(/[0-9]/)) return res.status(400).json({'message': 'Password must contain at least 1 number'});
+    if(!passwordIn.match(/[!@#$%^&*]/)) return res.status(400).json({'message': 'Password must contain at least 1 special character'});
+    if(passwordIn.length > 64) return res.status(400).json({'message': 'Password must be less than 64 characters long'});
      
     //duplication checking in DB
     const duplicate = await User.findOne({email: emailIn}).exec();
@@ -57,9 +43,8 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
             lastName: lnIn,
             email : emailIn,
             password : hashedPwd,
-            //remove comments when ready to fully deploy
-            /*SecQue: sqIn,
-            SQA: sqaIn*/
+            SecQue: sqIn,
+            SQA: sqaIn
         })
         console.log(result);
         res.status(201).json({'success': `New User created with ${emailIn}`});
@@ -100,7 +85,7 @@ const handleLogin = asyncHandler(async (req,res) => {
                 ? foundUser.refreshToken
                 :foundUser.refreshToken.filter(newRT => newRT !== cookies.jwt);
         if(cookies?.jwt){
-            res.clearCookie('jwt', {httpOnly: false, sameSite: 'None', /* secure: true */});
+            res.clearCookie('jwt', {httpOnly: true, sameSite: 'None', /* secure: true */});
         };
 
         //saves refresh token to current user
@@ -109,7 +94,7 @@ const handleLogin = asyncHandler(async (req,res) => {
         console.log(result);
         
         //secure cookie w/ refresh token
-        res.cookie('jwt', NewRefreshToken, {httpOnly: false, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000});
+        res.cookie('jwt', NewRefreshToken, {httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000});
         res.json({accessToken});
     }else{
         res.sendStatus(401)
@@ -217,20 +202,23 @@ const determineRequestType = () => {
 };
 
 
-// Get user's profile
-const getProfile = asyncHandler(async (req, res) => {  
-    const HTTPMethod = req.method;
+ // Get user's profile
 
-    if (HTTPMethod === 'GET'){
-    //retrives cookies if trying to look at own profile.
-    const allCookies = req.cookies;
-    const JWTValue = allCookies.jwt
+const getProfile = asyncHandler(async (req, res) => {
+    const { userID } = req.body;
 
-    if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
-    const foundUser = await User.findOne({ refreshToken: JWTValue }).exec();
+    // Check if userID is provided
+
+    if (!userID) return res.status(400).json({ message: 'userID field is required' });
+
+    // Check if userID exists
+
+    const foundUser = await User.findOne({ _id: userID }).exec();
 
     if (!foundUser) return res.status(404).json({ message: 'User not found' });
+
     // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
+
     if (foundUser.profilePic) {
         const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
         res.status(200).json({ profile: { firstName, lastName, imageURL } });
@@ -239,34 +227,13 @@ const getProfile = asyncHandler(async (req, res) => {
         const imageURL = 'https://f005.backblazeb2.com/file/knightangel/default-profile-picture.png';
         res.status(200).json({ profile: { firstName, lastName, imageURL } });
     }
-    }else if (HTTPMethod === 'POST'){
-        //retrives cookies to confirm user is signed in.
-        const allCookies = req.cookies;
-        const JWTValue = allCookies.jwt
 
-        if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
-        //change to something else that will identify other users in different locations(feed page, services, etc.)
-        const {emailIn} = req.body;
-        const foundUser = await User.findOne({email: emailIn }).exec();
-        if (!foundUser) return res.status(404).json({ message: 'User not found' });
-
-        // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
-
-        if (foundUser.profilePic) {
-            const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
-            res.status(200).json({ profile: { firstName, lastName, imageURL } });
-        } else {
-            const { firstName, lastName, email } = foundUser;
-            const imageURL = 'https://f005.backblazeb2.com/file/knightangel/default-profile-picture.png';
-            res.status(200).json({ profile: { firstName, lastName, imageURL } });
-        }
-    }
 });
 
 const emergencyContacts = asyncHandler(async(req, res) => {
      //change emailIn to something else later, as its only for testing RN. Route will only be ran when user is signed into app. 
     const {userEmail, friendEmail} = req.body
-    if(userEmail == friendEmail) return res.status(452).json({message: `You may not enter your own email address`});
+    if(userEmail == friendEmail) return res.status(405).json({message: `You may not enter your own email address`});
 
     const foundFriendsEmail = await User.findOne({email: friendEmail}).exec();
     const foundUserEmail = await User.findOne({email: userEmail}).exec();
