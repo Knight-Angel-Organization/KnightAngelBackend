@@ -129,7 +129,7 @@ const getProfilePicture = asyncHandler(async (req, res) => {
   const _attachedEmail = req.body.attachedEmail;
 
   if (!_attachedEmail) {
-    return res.status(400).json({ 'message': 'email is required.' });
+    return res.status(400).json({ 'message': 'Email is required.' });
   }
 
   const foundUser = await User.findOne({ email: _attachedEmail }).exec();
