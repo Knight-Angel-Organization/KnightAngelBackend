@@ -89,6 +89,7 @@ const addProfilePicture = asyncHandler(async (req, res) => {
 
   // Check if the file exists in Backblaze
 
+  try {
   const fileExists = await b2.getFileInfo({
     fileId: foundUser.profilePic.fileID
   });
@@ -99,9 +100,12 @@ const addProfilePicture = asyncHandler(async (req, res) => {
       fileId: foundUser.profilePic.fileID
     });
   }
+} catch (err) {
+  console.log(err);
+}
+
 
   try {
-
 
     // Get the file data from Multer
     const _uploadedImage = req.file.buffer;
