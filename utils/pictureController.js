@@ -80,13 +80,33 @@ const addProfilePicture = asyncHandler(async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 }else{
+
+
   // Delete the old profile picture from Backblaze
+
   await b2.authorize();
-  await b2.deleteFileVersion({
-    fileName: foundUser.profilePic.fileName,
+  
+
+  // Check if the file exists in Backblaze
+
+  try {
+  const fileExists = await b2.getFileInfo({
     fileId: foundUser.profilePic.fileID
   });
+
+  if (fileExists.status === 200) {
+    await b2.deleteFileVersion({
+      fileName: foundUser.profilePic.fileName,
+      fileId: foundUser.profilePic.fileID
+    });
+  }
+} catch (err) {
+  console.log(err);
+}
+
+
   try {
+
     // Get the file data from Multer
     const _uploadedImage = req.file.buffer;
 
