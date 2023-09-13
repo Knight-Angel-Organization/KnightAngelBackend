@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const sendGrid = require('../utils/sendGrid');
-const pictureController = require('../controllers/pictureController');
+const pictureController = require('../utils/pictureController');
 
 
 router.route('/register')
