@@ -21,8 +21,8 @@ Custom HTTP Status Codes:
 */
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
-    const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
-    if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
+    const {fnIn, lnIn, emailIn, passwordIn, usernameIn, /* sqIn, sqaIn */} = req.body;
+    if(!fnIn || !lnIn || !emailIn || !passwordIn || !usernameIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
     
     // Make sure the email is valid, using validator package because regex had too many false positives and negatives
 
@@ -47,7 +47,10 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
      
     //duplication checking in DB
     const duplicate = await User.findOne({email: emailIn}).exec();
+    const duplicateUsername = await User.findOne({username: usernameIn}).exec();
     if (duplicate) return res.sendStatus(409);//conflict
+    if (duplicateUsername) return res.sendStatus(409); //duplicate username
+    
     try{
         //encrypt password
         const hashedPwd = await bcrypt.hash(passwordIn, 10)
@@ -57,6 +60,7 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
             lastName: lnIn,
             email : emailIn,
             password : hashedPwd,
+            username: usernameIn,
             //remove comments when ready to fully deploy
             /*SecQue: sqIn,
             SQA: sqaIn*/
@@ -71,7 +75,7 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
 const handleLogin = asyncHandler(async (req,res) => {
     const cookies = req.cookies;
     const {emailIn, passwordIn} = req.body;
-    if(!emailIn || !passwordIn) return res.status(400).json({'message': 'email & password are required'});
+    if(!emailIn || !passwordIn ) return res.status(400).json({'message': 'email & password are required'});
     const foundUser = await User.findOne({email: emailIn}).exec();
     if(!foundUser) return res.sendStatus(401); //Unauthorized
     //eval. password
