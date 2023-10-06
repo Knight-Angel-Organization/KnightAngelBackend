@@ -6,95 +6,65 @@ const Schema = mongoose.Schema;
 const imageSchema = new Schema({
   imageURL: {
     type: String,
-    required: false,
+    required:false,
   },
-  fileID: {
+  fileID:{
     type: String,
   },
-  fileName: {
+  fileName:{
     type: String,
   },
-  uploadDate: {
+  uploadDate:{
     type: Date,
     default: Date.now,
-    //stored in UTC yyyy-mm-dd hh:mm:ss.ns
+    //stored in UTC Yr.-Mon.-Day HR:Min.:Sec.:NanoSec.
   }
 })
 
-/*
-const emergencyContactSchema = new Schema({
-  
+const userSchema = new Schema({
   firstName: {
     type: String,
     required: false,
-  },
-  
+    },
   lastName:{
     type: String,
     required: false
-  },
-  
+    },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    },
   email: {
     type: String,
     required: true,
     unique: true,
-  }, 
-
-
-}) 
-*/
-
-const userSchema = new Schema({
-    firstName: {
-        type: String,
-        required: false,
-      },
-      
-      lastName:{
-        type: String,
-        required: false
-      },
-      username: {
-        type: String,
-        required: true,
-        unique: true,
-      },
-      
-      email: {
-        type: String,
-        required: true,
-        unique: true,
-      },
-      isVerified: {
-    //     to check if the account is verified or not
-        type: Boolean,
-        default: false,
-      },
-      password: {
-        type: String,
-        required: true,
-      },
-      avatar: {
-        type: String,
-      },
-      date: {
-        type: Date,
-        default: Date.now,
-    //     date will be set to the time the account is created
-      },
-      SecQue: {
-        type: String,
-        required: false,
-      },
-      SQA: {
-        type: String,
-        required: false,
-      },
-      refreshToken: [String], //having in array supports multidevice login
-
-      profilePic: imageSchema,
-
-      emergencyContacts: [String]
+    },
+  isVerified: {
+    type: Boolean,
+    default: false,
+    //to check if the account is verified or not
+    },
+  password: {
+    type: String,
+    required: true,
+    },
+  date: {
+    type: Date,
+    default: Date.now, //date will be set to the time the account is created
+    },
+  followers: {//ppl that follow the user
+    type: Array,
+    default: [],
+    },
+  followings: {// ppl the user is following
+    type: Array,
+    default: [],
+    },
+  refreshToken: [String], //having in array supports multidevice login
+  profilePic: imageSchema,
+  emergencyContacts: [String]
 })
+
 
 module.exports = mongoose.model("User", userSchema);

@@ -10,8 +10,8 @@ router.route('/register')
     .post(sendGrid.emailNewUser)
     
 router.route('/auth')
-    .get(userController.handleLogout)
-    .post(userController.handleLogin)
+    .get(userController.loginAndLogout)
+    .post(userController.loginAndLogout)
 
 router.route('/refresh')
     .get(userController.handleRefreshToken)
@@ -31,5 +31,8 @@ router.route('/emergencycontact')
     
 router.route('/profile')
     .get(userController.getProfile)
+
+router.route('/follow')
+    .put(userController.followUser)
 
 module.exports = router
