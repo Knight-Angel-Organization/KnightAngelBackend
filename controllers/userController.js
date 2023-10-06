@@ -209,21 +209,16 @@ const determineRequestType = () => {
 
  // Get user's profile
 
-const getProfile = asyncHandler(async (req, res) => {
-    const { userID } = req.body;
-
-    // Check if userID is provided
-
-    if (!userID) return res.status(400).json({ message: 'userID field is required' });
-
-    // Check if userID exists
-
-    const foundUser = await User.findOne({ _id: userID }).exec();
-
+ const getProfile = asyncHandler(async (req, res) => {  
+    const HTTPMethod = req.method;
+    if (HTTPMethod === 'GET'){
+    //retrives cookies if trying to look at own profile.
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt
+    if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+    const foundUser = await User.findOne({ refreshToken: JWTValue }).exec();
     if (!foundUser) return res.status(404).json({ message: 'User not found' });
-
     // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
-
     if (foundUser.profilePic) {
         const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
         res.status(200).json({ profile: { firstName, lastName, imageURL } });
@@ -232,7 +227,25 @@ const getProfile = asyncHandler(async (req, res) => {
         const imageURL = 'https://f005.backblazeb2.com/file/knightangel/default-profile-picture.png';
         res.status(200).json({ profile: { firstName, lastName, imageURL } });
     }
-
+    }else if (HTTPMethod === 'POST'){
+        //retrives cookies to confirm user is signed in.
+        const allCookies = req.cookies;
+        const JWTValue = allCookies.jwt
+        if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+        //change to something else that will identify other users in different locations(feed page, services, etc.)
+        const {emailIn} = req.body;
+        const foundUser = await User.findOne({email: emailIn }).exec();
+        if (!foundUser) return res.status(404).json({ message: 'User not found' });
+        // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
+        if (foundUser.profilePic) {
+            const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
+            res.status(200).json({ profile: { firstName, lastName, imageURL } });
+        } else {
+            const { firstName, lastName, email } = foundUser;
+            const imageURL = 'https://f005.backblazeb2.com/file/knightangel/default-profile-picture.png';
+            res.status(200).json({ profile: { firstName, lastName, imageURL } });
+        }
+    }
 });
 
 const emergencyContacts = asyncHandler(async(req, res) => {
