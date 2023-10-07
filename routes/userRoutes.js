@@ -31,8 +31,12 @@ router.route('/emergencycontact')
     
 router.route('/profile')
     .get(userController.getProfile)
+    .post(userController.getProfile)
 
 router.route('/follow')
     .put(userController.followUser)
+
+router.route('/unfollow')
+    .put(userController.unfollowUser)
 
 module.exports = router

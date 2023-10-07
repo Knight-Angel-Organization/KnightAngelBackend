@@ -306,5 +306,26 @@ const followUser = asyncHandler(async(req,res)=>{
         res.status(500).json(err)
     }
 })
-module.exports = {handleNewUser, loginAndLogout, handleRefreshToken, determineRequestType: determineRequestType(), getProfile, emergencyContacts, followUser }
+
+const unfollowUser = asyncHandler(async(req,res)=>{
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt
+    const {usernameTapped} = req.body
+    try{
+        const currentUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
+        const followingUser = await User.findOne({username: usernameTapped}) //person that signed in user is trying to follow
+        if(currentUser.followings.includes(followingUser.username)){
+            await currentUser.updateOne({$pull: {followings:followingUser.username}})
+            await followingUser.updateOne({$pull: {followers:currentUser.username}})
+            /* await currentUser.updateOne({$pull:{followings:followingUser.username}})
+            await followingUser.updateOne({$pull:{followers:currentUser.username}}) */
+            res.status(200).json(`You just unfollowed ${followingUser.username}`)
+        }else{
+            res.status(403).json(`You don't follow ${followingUser.username}`)
+        }
+    }catch{
+        res.status(500).json(err);
+    }
+})
+module.exports = {handleNewUser, loginAndLogout, handleRefreshToken, determineRequestType: determineRequestType(), getProfile, emergencyContacts, followUser, unfollowUser }
 
