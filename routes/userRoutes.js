@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const sendGrid = require('../utils/sendGrid');
-const pictureController = require('../controllers/pictureController');
+const pictureController = require('../utils/pictureController');
 
 
 router.route('/register')
@@ -10,8 +10,8 @@ router.route('/register')
     .post(sendGrid.emailNewUser)
     
 router.route('/auth')
-    .get(userController.handleLogout)
-    .post(userController.handleLogin)
+    .get(userController.loginAndLogout)
+    .post(userController.loginAndLogout)
 
 router.route('/refresh')
     .get(userController.handleRefreshToken)
@@ -31,5 +31,12 @@ router.route('/emergencycontact')
     
 router.route('/profile')
     .get(userController.getProfile)
+    .post(userController.getProfile)
+
+router.route('/follow')
+    .put(userController.followUser)
+
+router.route('/unfollow')
+    .put(userController.unfollowUser)
 
 module.exports = router

@@ -9,8 +9,8 @@ const multer = require('multer');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
-    const {fnIn, lnIn, emailIn, passwordIn, /* sqIn, sqaIn */} = req.body;
-    if(!fnIn || !lnIn || !emailIn || !passwordIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
+    const {fnIn, lnIn, emailIn, passwordIn, usernameIn, /* sqIn, sqaIn */} = req.body;
+    if(!fnIn || !lnIn || !emailIn || !passwordIn || !usernameIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
     
     // Make sure the email is valid, using validator package because regex had too many false positives and negatives
 
@@ -33,7 +33,10 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
      
     //duplication checking in DB
     const duplicate = await User.findOne({email: emailIn}).exec();
+    const duplicateUsername = await User.findOne({username: usernameIn}).exec();
     if (duplicate) return res.sendStatus(409);//conflict
+    if (duplicateUsername) return res.sendStatus(409); //duplicate username
+    
     try{
         //encrypt password
         const hashedPwd = await bcrypt.hash(passwordIn, 10)
@@ -43,8 +46,10 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
             lastName: lnIn,
             email : emailIn,
             password : hashedPwd,
-            SecQue: sqIn,
-            SQA: sqaIn
+            username: usernameIn,
+            //remove comments when ready to fully deploy
+            /*SecQue: sqIn,
+            SQA: sqaIn*/
         })
         console.log(result);
         res.status(201).json({'success': `New User created with ${emailIn}`});
@@ -53,14 +58,20 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
     }
     next()
 })
-const handleLogin = asyncHandler(async (req,res) => {
-    const cookies = req.cookies;
-    const {emailIn, passwordIn} = req.body;
-    if(!emailIn || !passwordIn) return res.status(400).json({'message': 'email & password are required'});
-    const foundUser = await User.findOne({email: emailIn}).exec();
-    if(!foundUser) return res.sendStatus(401); //Unauthorized
-    //eval. password
-    const match = await bcrypt.compare(passwordIn, foundUser.password);
+
+const loginAndLogout = asyncHandler(async(req,res)=>{
+    const HTTPMethod = req.method;
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt //above lines check to see if the user is already signed in on current device.
+    if (HTTPMethod === 'POST'){//login is a HTTP post request
+        if(!JWTValue){
+        const cookies = req.cookies;
+        const {emailIn, passwordIn} = req.body;
+        if(!emailIn || !passwordIn ) return res.status(400).json({'message': 'email & password are required'});
+        const foundUser = await User.findOne({email: emailIn}).exec();
+        if(!foundUser) return res.sendStatus(401); //Unauthorized
+        //eval. password
+        const match = await bcrypt.compare(passwordIn, foundUser.password);
     if(match){
         //const roles = Object.values(foundUser.roles);
         //create JWT
@@ -79,7 +90,6 @@ const handleLogin = asyncHandler(async (req,res) => {
             process.env.REFRESH_TOKEN_SECRET,
             {expiresIn: '1d'}
         );
-
         const newRefreshTokenArray =
             !cookies?.jwt
                 ? foundUser.refreshToken
@@ -99,26 +109,30 @@ const handleLogin = asyncHandler(async (req,res) => {
     }else{
         res.sendStatus(401)
     }
-})
-const handleLogout = asyncHandler(async (req,res) => {
-    //on client, delete access token when logout is pushed.
-    const cookies = req.cookies;
-    if(!cookies?.jwt) return res.status(204); //no content
-    const refreshToken = cookies.jwt;
-
-    //is refresh token in db?    
-    const foundUser = await User.findOne({refreshToken}).exec();
-    if(!foundUser) {
-        res.clearCookie('jwt', {httpOnly: true, sameSite: 'None', /* secure: true */});
-        return res.sendStatus(204); //success but No content
+    }else{
+        return res.status(403).json({message: "You're already signed in"});
     }
-    //Delete refresh token in db
-    foundUser.refreshToken = foundUser.refreshToken.filter(newRT => newRT !== refreshToken);
-    const result = await foundUser.save();
-    console.log(result);//delete console.log(result) and similar ones in production.
-    res.clearCookie('jwt', {httpOnly: true}); //secure: true - only serves on https
-    res.sendStatus(204);
+    }else if (HTTPMethod === 'GET'){//logout is a HTTP GET Request
+        //on client, delete access token when logout is pushed.
+        const cookies = req.cookies;
+        if(!cookies?.jwt) return res.status(204); //no content
+        const refreshToken = cookies.jwt;
+
+        //is refresh token in db?    
+        const foundUser = await User.findOne({refreshToken}).exec();
+        if(!foundUser) {
+            res.clearCookie('jwt', {httpOnly: true, sameSite: 'None', /* secure: true */});
+            return res.sendStatus(204); //success but No content
+        }
+        //Delete refresh token in db
+        foundUser.refreshToken = foundUser.refreshToken.filter(newRT => newRT !== refreshToken);
+        const result = await foundUser.save();
+        console.log(result);//delete console.log(result) and similar ones in production.
+        res.clearCookie('jwt', {httpOnly: true}); //secure: true - only serves on https
+        res.sendStatus(204);
+    } 
 })
+
 const handleRefreshToken = asyncHandler(async (req,res) => {
     const cookies = req.cookies;
     if(!cookies?.jwt) return res.sendStatus(401);
@@ -204,21 +218,16 @@ const determineRequestType = () => {
 
  // Get user's profile
 
-const getProfile = asyncHandler(async (req, res) => {
-    const { userID } = req.body;
-
-    // Check if userID is provided
-
-    if (!userID) return res.status(400).json({ message: 'userID field is required' });
-
-    // Check if userID exists
-
-    const foundUser = await User.findOne({ _id: userID }).exec();
-
+ const getProfile = asyncHandler(async (req, res) => {  
+    const HTTPMethod = req.method;
+    if (HTTPMethod === 'GET'){
+    //retrives cookies if trying to look at own profile.
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt
+    if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+    const foundUser = await User.findOne({ refreshToken: JWTValue }).exec();
     if (!foundUser) return res.status(404).json({ message: 'User not found' });
-
     // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
-
     if (foundUser.profilePic) {
         const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
         res.status(200).json({ profile: { firstName, lastName, imageURL } });
@@ -227,7 +236,25 @@ const getProfile = asyncHandler(async (req, res) => {
         const imageURL = 'https://f005.backblazeb2.com/file/knightangel/default-profile-picture.png';
         res.status(200).json({ profile: { firstName, lastName, imageURL } });
     }
-
+    }else if (HTTPMethod === 'POST'){
+        //retrives cookies to confirm user is signed in.
+        const allCookies = req.cookies;
+        const JWTValue = allCookies.jwt
+        if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+        //change to something else that will identify other users in different locations(feed page, services, etc.)
+        const {emailIn} = req.body;
+        const foundUser = await User.findOne({email: emailIn }).exec();
+        if (!foundUser) return res.status(404).json({ message: 'User not found' });
+        // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
+        if (foundUser.profilePic) {
+            const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
+            res.status(200).json({ profile: { firstName, lastName, imageURL } });
+        } else {
+            const { firstName, lastName, email } = foundUser;
+            const imageURL = 'https://f005.backblazeb2.com/file/knightangel/default-profile-picture.png';
+            res.status(200).json({ profile: { firstName, lastName, imageURL } });
+        }
+    }
 });
 
 const emergencyContacts = asyncHandler(async(req, res) => {
@@ -260,5 +287,45 @@ const emergencyContacts = asyncHandler(async(req, res) => {
 
 
 })
-module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType(), getProfile, emergencyContacts }
+
+const followUser = asyncHandler(async(req,res)=>{
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt
+    const {usernameTapped} = req.body
+    try{
+        const currentUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
+        const followingUser = await User.findOne({username: usernameTapped}) //person that signed in user is trying to follow
+        if(!currentUser.followings.includes(followingUser.username)){
+            await currentUser.updateOne({$push:{followings:followingUser.username}})
+            await followingUser.updateOne({$push:{followers:currentUser.username}})
+            res.status(200).json(`You just followed ${followingUser.username}`)
+        }else{
+            res.status(403).json(`You already follow ${followingUser.username}`)
+        }
+    }catch{
+        res.status(500).json(err)
+    }
+})
+
+const unfollowUser = asyncHandler(async(req,res)=>{
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt
+    const {usernameTapped} = req.body
+    try{
+        const currentUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
+        const followingUser = await User.findOne({username: usernameTapped}) //person that signed in user is trying to follow
+        if(currentUser.followings.includes(followingUser.username)){
+            await currentUser.updateOne({$pull: {followings:followingUser.username}})
+            await followingUser.updateOne({$pull: {followers:currentUser.username}})
+            /* await currentUser.updateOne({$pull:{followings:followingUser.username}})
+            await followingUser.updateOne({$pull:{followers:currentUser.username}}) */
+            res.status(200).json(`You just unfollowed ${followingUser.username}`)
+        }else{
+            res.status(403).json(`You don't follow ${followingUser.username}`)
+        }
+    }catch{
+        res.status(500).json(err);
+    }
+})
+module.exports = {handleNewUser, loginAndLogout, handleRefreshToken, determineRequestType: determineRequestType(), getProfile, emergencyContacts, followUser, unfollowUser }
 
