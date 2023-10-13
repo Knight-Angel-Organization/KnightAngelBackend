@@ -40,6 +40,8 @@ const postSchema = new Schema({
       type: String,
       required: true,
     },
+
+    postLikes: [String],
       
     date: {
       type: Date,

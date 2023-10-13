@@ -9,4 +9,8 @@ router.route('/create')
 
 router.route('/getPost')
     .get(postController.getPost)
+
+router.route('/like')
+    .post(postController.likePost)
+
 module.exports = router

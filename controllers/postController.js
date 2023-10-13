@@ -81,7 +81,8 @@ const addPost = asyncHandler(async (req, res) => {
         postLocation: _postLocation,
         // postImages: _postImages,
         postType: _postType,
-        postCategory: _postCategory
+        postCategory: _postCategory,
+        postLikes: []
     });
 
     // If the post is successfully created, return a success message, otherwise return an error message.
@@ -154,4 +155,51 @@ const addComment = asyncHandler(async (req, res) => {
 });
 */
 
-module.exports = { addPost, getPost };
+const likePost = asyncHandler(async (req, res) => {
+
+
+    // Probably should refactor later
+    // Gonna need to verify user is authenticated to like for specified user
+
+    const _postID = req.body.postID;
+    const _userID = req.body.userID;
+
+
+    if (!_postID || !_userID) {
+        return res.status(400).json({ 'message': 'Error: Post ID and user ID are required.' });
+    }
+
+    if (!/^[0-9a-fA-F]{24}$/.test(_postID) || !/^[0-9a-fA-F]{24}$/.test(_userID)) {
+        return res.status(400).json({ 'message': 'Post ID or user ID is invalid.' });
+    }
+
+    const foundPost = await Post.findOne({ _id: new ObjectId(_postID) });
+    const foundUser = await User.findOne({ _id: new ObjectId(_userID) });
+
+
+
+    if (!foundUser) {
+        // Same error message as above to prevent username enumeration.
+        // Did not include in above if statement because no need to look up in database if user ID is not in correct format.
+        return res.status(400).json({ 'message': 'Post ID or user ID is invalid.' });
+    }
+
+    if (!foundPost) {
+        return res.status(400).json({ 'message': 'Error: Post ID not found.' });
+    }
+    
+    
+    if (foundPost.postLikes.includes(_userID)) {
+        return res.status(400).json({ 'message': 'Error: You have already liked this post.' });
+    }
+
+    foundPost.postLikes.push(_userID);
+
+    const updatedPost = await foundPost.save();
+
+    if (updatedPost) {
+        return res.status(200).json({ 'success': 'Post liked successfully.' });
+    }
+});
+
+module.exports = { addPost, getPost, likePost };
