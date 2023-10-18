@@ -1,5 +1,29 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+
+const commentSchema = new Schema({
+
+  commentID: {
+    type: String,
+    required:true,
+  },
+  commentOwner:{
+    type: String,
+  },
+  commentContent:{
+    type: String,
+  },
+
+  commentLikes: [String],
+
+  commentDate:{
+    type: Date,
+    default: Date.now,
+    //stored in UTC Yr.-Mon.-Day HR:Min.:Sec.:NanoSec.
+  }
+
+})
+
 const postSchema = new Schema({
 
     userID: {
@@ -42,6 +66,7 @@ const postSchema = new Schema({
     },
 
     postLikes: [String],
+    postComments: [commentSchema],
       
     date: {
       type: Date,
