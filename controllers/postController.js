@@ -156,6 +156,37 @@ const addComment = asyncHandler(async (req, res) => {
 });
 */
 
+const editPost = asyncHandler(async (req, res) => {
+
+    // Just send post ID
+
+    const _postID = req.body.postID;
+    const _newContent = req.body.postContent;
+
+    if (!_postID) {
+        return res.status(400).json({ 'message': 'Error: Post ID is required.' });
+    }
+
+    if (!/^[0-9a-fA-F]{24}$/.test(_postID)) {
+        return res.status(400).json({ 'message': 'Post ID is invalid.' });
+    }
+
+    const foundPost = await Post.findOne({ _id: new ObjectId(_postID) });
+
+    if (!foundPost) {
+        return res.status(400).json({ 'message': 'Error: Post ID is not found.' });
+    }
+
+    updatePostContent = await Post.updateOne({ _id: new ObjectId(_postID) }, { $set: { postContent: _newContent } });
+
+    if (updatePostContent) {
+        return res.status(200).json({ 'success': 'Post updated successfully.' });
+    } else {
+        return res.status(400).json({ 'message': 'Error: Post could not be updated.' });
+    }
+
+});
+
 const deletePost = asyncHandler(async (req, res) => {
 
     // Just send post ID
@@ -232,4 +263,4 @@ const likePost = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { addPost, getPost, deletePost, likePost };
+module.exports = { addPost, getPost, editPost, deletePost, likePost };

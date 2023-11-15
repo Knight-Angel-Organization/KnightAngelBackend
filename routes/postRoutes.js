@@ -10,6 +10,9 @@ router.route('/create')
 router.route('/getPost')
     .get(postController.getPost)
 
+router.route('/edit')
+    .patch(postController.editPost)
+
 router.route('/delete')
     .delete(postController.deletePost)
 
