@@ -158,7 +158,7 @@ const addComment = asyncHandler(async (req, res) => {
 
 const editPost = asyncHandler(async (req, res) => {
 
-    // Just send post ID
+    // Just send post ID and new content
 
     const _postID = req.body.postID;
     const _newContent = req.body.postContent;
