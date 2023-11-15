@@ -158,6 +158,8 @@ const addComment = asyncHandler(async (req, res) => {
 
 const deletePost = asyncHandler(async (req, res) => {
 
+    // Just send post ID
+
     const _postID = req.body.postID;
 
     if (!_postID) {
