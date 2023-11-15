@@ -10,7 +10,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, usernameIn, /* sqIn, sqaIn */} = req.body;
-    if(!fnIn || !lnIn || !emailIn || !passwordIn || !usernameIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
+    if(!fnIn || !lnIn || !emailIn || !passwordIn || !usernameIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, username, email, password, are required'});
     
     // Make sure the email is valid, using validator package because regex had too many false positives and negatives
 

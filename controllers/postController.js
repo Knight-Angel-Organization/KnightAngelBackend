@@ -156,6 +156,33 @@ const addComment = asyncHandler(async (req, res) => {
 });
 */
 
+const deletePost = asyncHandler(async (req, res) => {
+
+    const _postID = req.body.postID;
+
+    if (!_postID) {
+        return res.status(400).json({ 'message': 'Error: Post ID is required.' });
+    }
+
+    if (!/^[0-9a-fA-F]{24}$/.test(_postID)) {
+        return res.status(400).json({ 'message': 'Post ID is invalid.' });
+    }
+
+    const foundPost = await Post.findOne({ _id: new ObjectId(_postID) });
+
+    if (!foundPost) {
+        return res.status(400).json({ 'message': 'Error: Post ID is not found.' });
+    }
+
+    const deleteThisPost = await Post.deleteOne({ _id: new ObjectId(_postID) });
+
+    if (deleteThisPost) {
+        return res.status(200).json({ 'success': 'Post deleted successfully.' });
+    }
+
+
+});
+
 const likePost = asyncHandler(async (req, res) => {
 
 
@@ -203,4 +230,4 @@ const likePost = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { addPost, getPost, likePost };
+module.exports = { addPost, getPost, deletePost, likePost };

@@ -10,6 +10,9 @@ router.route('/create')
 router.route('/getPost')
     .get(postController.getPost)
 
+router.route('/delete')
+    .delete(postController.deletePost)
+
 router.route('/like')
     .post(postController.likePost)
 
