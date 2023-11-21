@@ -94,33 +94,40 @@ const addPost = asyncHandler(async (req, res) => {
     }
 });
 
-// Retrieve post from database by post ID.
+// Retrieve all posts
 const getPost = asyncHandler(async (req, res) => {
-    // Get the post ID from the request body.
-    const _postID = req.body.postID;
+    // OLD: Get the post ID from the request body.
+    // OLD: const _postID = req.body.postID;
 
-    // Check if the post ID is provided, if not, return an error message.
-    if (!_postID) {
-        return res.status(400).json({ 'message': 'Error: Post ID is required.' });
+    // OLD: Check if the post ID is provided, if not, return an error message.
+    // OLD: if (!_postID) {
+    // OLD:    return res.status(400).json({ 'message': 'Error: Post ID is required.' });
+    // OLD:}
+
+    // OLD: Verify post ID is a string of 24 hex characters
+    // OLD: if (!/^[0-9a-fA-F]{24}$/.test(_postID)) {
+    // OLD:    return res.status(400).json({ 'message': 'Post ID is invalid.' });
+    // OLD: }
+
+    // OLD: Check if the post ID is found in the database.
+    // OLD: const foundPost = await Post.findOne({ _id: new ObjectId(_postID) });
+
+
+    // OLD: If post ID is not found, return an error message.
+    // OLD: if (!foundPost) {
+    // OLD:    return res.status(400).json({ 'message': 'Error: Post ID is not found.' });
+    // OLD: }
+
+    // OLD: If post ID is found, return the post.
+    // OLD: if (foundPost) {
+    // OLD:    return res.status(200).json({ 'post': foundPost });
+    // OLD: }
+
+    const allPosts = await Post.find({});
+    if (allPosts) {
+        return res.status(200).json({ 'posts': allPosts });
     }
 
-    // Verify post ID is a string of 24 hex characters
-    if (!/^[0-9a-fA-F]{24}$/.test(_postID)) {
-        return res.status(400).json({ 'message': 'Post ID is invalid.' });
-    }
-
-    // Check if the post ID is found in the database.
-    const foundPost = await Post.findOne({ _id: new ObjectId(_postID) });
-
-    // If post ID is not found, return an error message.
-    if (!foundPost) {
-        return res.status(400).json({ 'message': 'Error: Post ID is not found.' });
-    }
-
-    // If post ID is found, return the post.
-    if (foundPost) {
-        return res.status(200).json({ 'post': foundPost });
-    }
 });
 
 /*
