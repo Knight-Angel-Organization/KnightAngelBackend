@@ -1,25 +1,8 @@
 const mongoose = require("mongoose");
 const ObjectId = mongoose.ObjectId;
+const imageSchema = require('./Image');
 // Making a user schema with all the details required from the user 
 const Schema = mongoose.Schema;
-
-const imageSchema = new Schema({
-  imageURL: {
-    type: String,
-    required:false,
-  },
-  fileID:{
-    type: String,
-  },
-  fileName:{
-    type: String,
-  },
-  uploadDate:{
-    type: Date,
-    default: Date.now,
-    //stored in UTC Yr.-Mon.-Day HR:Min.:Sec.:NanoSec.
-  }
-})
 
 const userSchema = new Schema({
   firstName: {
