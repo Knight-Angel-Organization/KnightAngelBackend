@@ -23,23 +23,23 @@ To-do:
 - Add a way to add comments to posts.
 - Add a way to delete comments.
 - Add a way to edit comments.
-- Maybe add a way to like posts.
+123- Maybe add a way to like posts.
 - Maybe add a way to like comments.
 
 
 */
 
 
-const addPost = asyncHandler(async (req, res) => { 
+const addPost = asyncHandler(async (req, res) => {
 
-  // Get the user ID + post content, title, location and type from the request body. It is optional to have the location.
-  const _userID = req.body.userID;
-  const _postContent = req.body.postContent;
-  const _postTitle = req.body.postTitle;
-  const _postType = req.body.postType;
-  const _postCategory = req.body.postCategory;
-  let _postLocation;
-  // Check if post location is provided, if not, set it to "false".
+    // Get the user ID + post content, title, location and type from the request body. It is optional to have the location.
+    const _userID = req.body.userID;
+    const _postContent = req.body.postContent;
+    const _postTitle = req.body.postTitle;
+    const _postType = req.body.postType;
+    const _postCategory = req.body.postCategory;
+    let _postLocation;
+    // Check if post location is provided, if not, set it to "false".
     if (!req.body.postLocation) {
         _postLocation = "false";
     } else {
@@ -49,11 +49,11 @@ const addPost = asyncHandler(async (req, res) => {
 
     // Check if the user ID, post content, title, category and type are provided, if not, return an error message.
 
-  if (!_postContent || !_postTitle || !_postType || !_postCategory || !_userID) {
-    return res.status(400).json({ 'message': 'Error: Post content, title, category, type, and user ID are required.' });
-  }
+    if (!_postContent || !_postTitle || !_postType || !_postCategory || !_userID) {
+        return res.status(400).json({ 'message': 'Error: Post content, title, category, type, and user ID are required.' });
+    }
 
-  // If post content is longer than 1000 characters or post title is longer than 100 characters.
+    // If post content is longer than 1000 characters or post title is longer than 100 characters.
     if (_postContent.length > 1000) {
         return res.status(400).json({ 'message': 'Error: Post content is too long. (1000 characters maximum)' });
     } else if (_postTitle.length > 100) {
@@ -132,10 +132,10 @@ const getPost = asyncHandler(async (req, res) => {
 
 /*
 const addComment = asyncHandler(async (req, res) => {
-    
+
     // Get the post ID from the request body.
     const _postID = req.body.postID;
-    
+
     // Get the user ID + comment content from the request body.
     const _userID = req.body.userID;
     const _commentContent = req.body.commentContent;
@@ -255,8 +255,8 @@ const likePost = asyncHandler(async (req, res) => {
     if (!foundPost) {
         return res.status(400).json({ 'message': 'Error: Post ID not found.' });
     }
-    
-    
+
+
     if (foundPost.postLikes.includes(_userID)) {
         return res.status(400).json({ 'message': 'Error: You have already liked this post.' });
     }
