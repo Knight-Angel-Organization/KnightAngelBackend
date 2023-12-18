@@ -16,7 +16,7 @@ const b2 = new B2({
   applicationKeyId: process.env.BACKBLAZE_API_KEY_ID,
   applicationKey: process.env.BACKBLAZE_API_KEY,
   retry: {
-      retries: 3
+    retries: 3
   }
 });
 
@@ -43,109 +43,118 @@ const addProfilePicture = asyncHandler(async (req, res) => {
   // Find the existing image associated with the email
   const foundUser = await User.findOne({ email: _attachedEmail }).exec();
 
-  if(!foundUser.profilePic){
-  try {
-    // Get the file data from Multer
-    const _uploadedImage = req.file.buffer;
+  if (!foundUser.profilePic) {
+    try {
+      // Get the file data from Multer
+      const _uploadedImage = req.file.buffer;
 
-    // Ensure unique file name
-    const _fileName =
-      crypto.createHash('sha1').update(Date.now() + '_' + Math.floor(Math.random() * 11000) + '_' + foundUser.email).digest('hex') +
-      path.extname(req.file.originalname);
+      // Ensure unique file name
+      const _fileName =
+        crypto.createHash('sha1').update(Date.now() + '_' + Math.floor(Math.random() * 11000) + '_' + foundUser.email).digest('hex') +
+        path.extname(req.file.originalname);
 
-    await b2.authorize();
-    const uploadUrlResponse = await b2.getUploadUrl({
-      bucketId: process.env.B2_BUCKET_ID,
-    });
+      await b2.authorize();
+      const uploadUrlResponse = await b2.getUploadUrl({
+        bucketId: process.env.B2_BUCKET_ID,
+      });
 
-    const uploadResponse = await b2.uploadFile({
-      uploadUrl: uploadUrlResponse.data.uploadUrl,
-      uploadAuthToken: uploadUrlResponse.data.authorizationToken,
-      fileName: _fileName,
-      data: _uploadedImage,
-      onUploadProgress: (event) => {},
-    });
+      const uploadResponse = await b2.uploadFile({
+        uploadUrl: uploadUrlResponse.data.uploadUrl,
+        uploadAuthToken: uploadUrlResponse.data.authorizationToken,
+        fileName: _fileName,
+        data: _uploadedImage,
+        onUploadProgress: (event) => { },
+      });
 
-    const _fileID = uploadResponse.data.fileId;
+      const _fileID = uploadResponse.data.fileId;
 
-    const result = foundUser.updateOne({profilePic:
-      {imageURL:'https://f005.backblazeb2.com/file/knightangel/' + _fileName,
-      fileID: _fileID,
-      fileName: _fileName,
-      uploadDate: new Date()}}).exec();
+      const result = foundUser.updateOne({
+        profilePic:
+        {
+          imageURL: 'https://f005.backblazeb2.com/file/knightangel/' + _fileName,
+          fileID: _fileID,
+
+          fileName: _fileName,
+          uploadDate: new Date()
+        }
+      }).exec();
       console.log(result)
 
-    res.status(201).json({ success: `Profile picture for ${_attachedEmail} uploaded.` });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-}else{
+      res.status(201).json({ success: `Profile picture for ${_attachedEmail} uploaded.` });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  } else {
 
 
-  // Delete the old profile picture from Backblaze
-
-  await b2.authorize();
-  
-
-  // Check if the file exists in Backblaze
-
-  try {
-  const fileExists = await b2.getFileInfo({
-    fileId: foundUser.profilePic.fileID
-  });
-
-  if (fileExists.status === 200) {
-    await b2.deleteFileVersion({
-      fileName: foundUser.profilePic.fileName,
-      fileId: foundUser.profilePic.fileID
-    });
-  }
-} catch (err) {
-  console.log(err);
-}
-
-
-  try {
-
-    // Get the file data from Multer
-    const _uploadedImage = req.file.buffer;
-
-    // Ensure unique file name
-    const _fileName =
-      crypto.createHash('sha1').update(Date.now() + '_' + Math.floor(Math.random() * 11000) + '_' + foundUser.email).digest('hex') +
-      path.extname(req.file.originalname);
+    // Delete the old profile picture from Backblaze
 
     await b2.authorize();
-    const uploadUrlResponse = await b2.getUploadUrl({
-      bucketId: process.env.B2_BUCKET_ID,
-    });
 
-    const uploadResponse = await b2.uploadFile({
-      uploadUrl: uploadUrlResponse.data.uploadUrl,
-      uploadAuthToken: uploadUrlResponse.data.authorizationToken,
-      fileName: _fileName,
-      data: _uploadedImage,
-      onUploadProgress: (event) => {},
-    });
 
-    const _fileID = uploadResponse.data.fileId;
+    // Check if the file exists in Backblaze
 
-    const result = foundUser.updateOne({profilePic:
-      {imageURL:'https://f005.backblazeb2.com/file/knightangel/' + _fileName,
-      fileID: _fileID,
-      fileName: _fileName,
-      uploadDate: new Date()}}).exec();
+    try {
+      const fileExists = await b2.getFileInfo({
+        fileId: foundUser.profilePic.fileID
+      });
+
+      if (fileExists.status === 200) {
+        await b2.deleteFileVersion({
+          fileName: foundUser.profilePic.fileName,
+          fileId: foundUser.profilePic.fileID
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+
+
+    try {
+
+      // Get the file data from Multer
+      const _uploadedImage = req.file.buffer;
+
+      // Ensure unique file name
+      const _fileName =
+        crypto.createHash('sha1').update(Date.now() + '_' + Math.floor(Math.random() * 11000) + '_' + foundUser.email).digest('hex') +
+        path.extname(req.file.originalname);
+
+      await b2.authorize();
+      const uploadUrlResponse = await b2.getUploadUrl({
+        bucketId: process.env.B2_BUCKET_ID,
+      });
+
+      const uploadResponse = await b2.uploadFile({
+        uploadUrl: uploadUrlResponse.data.uploadUrl,
+        uploadAuthToken: uploadUrlResponse.data.authorizationToken,
+        fileName: _fileName,
+        data: _uploadedImage,
+        onUploadProgress: (event) => { },
+      });
+
+      const _fileID = uploadResponse.data.fileId;
+
+      const result = foundUser.updateOne({
+        profilePic:
+        {
+          imageURL: 'https://f005.backblazeb2.com/file/knightangel/' + _fileName,
+          fileID: _fileID,
+          fileName: _fileName,
+          uploadDate: new Date()
+        }
+      }).exec();
       console.log(foundUser)
 
-    res.status(201).json({ success: `Profile picture for ${foundUser.email} updated.` });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+      res.status(201).json({ success: `Profile picture for ${foundUser.email} updated.` });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+
   }
-  
-}
 });
 
-const getProfilePicture = asyncHandler(async (req, res) => { 
+const getProfilePicture = asyncHandler(async (req, res) => {
   const _attachedEmail = req.body.attachedEmail;
 
   if (!_attachedEmail) {
@@ -157,7 +166,7 @@ const getProfilePicture = asyncHandler(async (req, res) => {
   if (foundUser.profilePic) {
     // Retrieve the URL
     const _imageURL = foundUser.profilePic.imageURL;
-    console.log(_imageURL); 
+    console.log(_imageURL);
     return res.status(200).json({ 'success': _imageURL });
   } else {
     return res.status(400).json({ 'message': 'Image ID not found.' });
@@ -165,4 +174,4 @@ const getProfilePicture = asyncHandler(async (req, res) => {
 });
 
 
-module.exports = { upload, addProfilePicture, getProfilePicture};
+module.exports = { upload, addProfilePicture, getProfilePicture };
