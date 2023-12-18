@@ -1,20 +1,23 @@
 const mongoose = require("mongoose");
 const ObjectId = mongoose.ObjectId;
-// Making a user schema with all the details required from the user 
+// Making a user schema with all the details required from the user
 const Schema = mongoose.Schema;
 
 const imageSchema = new Schema({
   imageURL: {
     type: String,
-    required:false,
+    required: false,
   },
-  fileID:{
+  fileID: {
     type: String,
   },
-  fileName:{
+  fileName: {
     type: String,
   },
-  uploadDate:{
+  mineType: {
+    type: String,
+  },
+  uploadDate: {
     type: Date,
     default: Date.now,
     //stored in UTC Yr.-Mon.-Day HR:Min.:Sec.:NanoSec.
