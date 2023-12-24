@@ -3,3 +3,4 @@ node_modules
 logs/reqLog.txt
 logs/errLog.txt
 logs/fileUploadLog.txt
+*.txt
