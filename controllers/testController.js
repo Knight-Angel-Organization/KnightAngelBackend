@@ -6,7 +6,7 @@ const imageSchema = require("../model/Image");
 
 const uploadFile = asyncHandler(async (req, res, next) => {
     const { buffer, mimetype, originalname } = req.file;
-    const userId = req.user._id;
+    //const userId = req.user._id;
 
     if (!buffer || !mimetype || !originalname) {
         res.status(400).json({ message: "File not found" });
@@ -21,16 +21,15 @@ const uploadFile = asyncHandler(async (req, res, next) => {
     }
 
     try {
-        const fileInfo = await uploadToB2(buffer, mimetype, originalname);
+       const fileInfo = await uploadToB2(buffer, mimetype, originalname);
 
         // use this fileInfo to save to database
-        const profileImage = await imageSchema.create({
+        /* const profileImage = await imageSchema.create({
             fileName: fileInfo.fileName,
             fileID: fileInfo.id,
             uploadDate: fileInfo.time,
-            mineType: mimetype
-        });
-
+            mineType: mimetype 
+        });*/
         // link the image document to user document
 
         res.json(fileInfo);

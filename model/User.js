@@ -45,7 +45,7 @@ const userSchema = new Schema({
     default: [],
   },
   refreshToken: [String], //having in array supports multidevice login
-  profilePic: Schema.ObjectId,// imageSchema id
+  profilePic: imageSchema,// imageSchema id
   emergencyContacts: [String]
 })
 

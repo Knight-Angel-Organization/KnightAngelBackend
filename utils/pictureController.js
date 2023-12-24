@@ -6,6 +6,11 @@ const crypto = require('crypto');
 const path = require('path');
 const { MongoClient, ObjectId } = require('mongodb');
 const { userInfo } = require('os');
+const fileTypes = require("../config/fileType");
+const imageSchema = require("../model/Image");
+const { deleteFile: deleteB2File } = require("../utils/files/deleteBucketFile");
+const { uploadToB2 } = require("../utils/files/uploadController");
+const { id } = require('date-fns/locale');
 
 //const filetype = require('file-type');
 
@@ -33,7 +38,73 @@ Current functionality:
   Will refactor later.
 */
 
-const addProfilePicture = asyncHandler(async (req, res) => {
+const addProfilePicture = asyncHandler(async (req,res)=>{
+const allCookies = req.cookies;
+const JWTValue = allCookies.jwt
+const foundUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
+const { buffer, mimetype, originalname } = req.file;
+//Prep work needed(grabbing cookies & looking for User via JWT and making sure a picture(or any file in particular) is attached in request body)
+
+if (!buffer || !mimetype || !originalname) {
+  res.status(400).json({ message: "File not found" });
+  return;
+}
+const validMineTypes = fileTypes['image'];
+if (!validMineTypes.includes(mimetype)) {
+  res.status(400).json({ message: "Invalid file type" });
+  return;
+}
+//"Data Validation" for image uploaded
+
+if(!foundUser.profilePic){
+  try{
+    const fileInfo = await uploadToB2(buffer, mimetype, originalname);
+    const result = foundUser.updateOne({
+      profilePic:{
+        imageURL: fileInfo.fileName,
+        fileID: fileInfo.id,
+        fileName: fileInfo.fileName,
+        mimeType : mimetype,
+        uploadDate: new Date()
+      }
+    }).exec()
+    console.log(result)
+    res.status(201).json({ success: `Profile picture for ${_attachedEmail} uploaded.` });
+  }catch(err){
+    console.log(err);
+    res.status(500).json({ message: err.message });
+  }
+}else{
+  try{
+    const oldFileID = foundUser.profilePic.fileID
+    const oldFileName = foundUser.profilePic.fileName
+    const oldFileInfo = await deleteB2File(oldFileID, oldFileName)
+  }catch(err){
+    console.log(err)
+    res.status(500).json({message:err.message})
+  }
+
+  try{
+    const fileInfo = await uploadToB2(buffer, mimetype, originalname);
+    const result = foundUser.updateOne({
+      profilePic:{
+        imageURL: fileInfo.fileName,
+        fileID: fileInfo.id,
+        fileName: fileInfo.fileName,
+        mimeType : mimetype,
+        uploadDate: new Date()
+      }
+    }).exec()
+    console.log(result)
+    res.status(201).json({ success: `Profile picture for ${foundUser.email} updated.` });
+  }catch{
+    console.log(err);
+    res.status(500).json({ message: err.message });
+  }
+}
+
+})
+const addProfilePicture2 = asyncHandler(async (req, res) => {
   const _attachedEmail = req.body.attachedEmail;
 
   if (!_attachedEmail) {
