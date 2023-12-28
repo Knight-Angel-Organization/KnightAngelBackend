@@ -3,7 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const sendGrid = require('../utils/sendGrid');
 const pictureController = require('../utils/pictureController');
-const { upload } = require('../utils/files/uploadController');
+const { upload } = require('../utils/pictureStuff/uploadController');
 
 
 router.route('/register')
@@ -25,7 +25,6 @@ router.route('/twofactorconfirm')
 
 router.route('/profilepicture')
     .post(upload('uploadedImage'), pictureController.addProfilePicture)
-    //.post(pictureController.upload, pictureController.addProfilePicture)
     .get(pictureController.getProfilePicture)
 
 router.route('/emergencycontact')

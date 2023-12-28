@@ -1,8 +1,9 @@
-const { uploadToB2 } = require("../utils/files/uploadController")
+const { uploadToB2 } = require("../utils/pictureStuff/uploadController")
 const asyncHandler = require('express-async-handler');
-const { deleteFile: deleteB2File } = require("../utils/files/deleteBucketFile");
+const { deleteFile: deleteB2File } = require("../utils/pictureStuff/deleteBucketFile");
 const fileTypes = require("../config/fileType");
 const imageSchema = require("../model/Image");
+const User = require('../model/User');
 
 const uploadFile = asyncHandler(async (req, res, next) => {
     const { buffer, mimetype, originalname } = req.file;
@@ -41,11 +42,12 @@ const uploadFile = asyncHandler(async (req, res, next) => {
 });
 
 const deleteFile = asyncHandler(async (req, res, next) => {
-    const { fileId, fileName } = req.body;
-    if (!fileId || !fileName) {
-        res.status(400).json({ message: "Missing fileId or fileName" });
-    }
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt
+    const foundUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
     try {
+        const fileId = foundUser.profilePic.fileID
+        const fileName = foundUser.profilePic.fileName
         const fileInfo = await deleteB2File(fileId, fileName);
         console.log(fileInfo);
         res.json(fileInfo.data);

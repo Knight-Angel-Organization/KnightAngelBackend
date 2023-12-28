@@ -8,8 +8,8 @@ const { MongoClient, ObjectId } = require('mongodb');
 const { userInfo } = require('os');
 const fileTypes = require("../config/fileType");
 const imageSchema = require("../model/Image");
-const { deleteFile: deleteB2File } = require("../utils/files/deleteBucketFile");
-const { uploadToB2 } = require("../utils/files/uploadController");
+const { deleteFile: deleteB2File } = require("./pictureStuff/deleteBucketFile");
+const { uploadToB2 } = require("./pictureStuff/uploadController");
 const { id } = require('date-fns/locale');
 
 //const filetype = require('file-type');
@@ -69,7 +69,7 @@ if(!foundUser.profilePic){
       }
     }).exec()
     console.log(result)
-    res.status(201).json({ success: `Profile picture for ${_attachedEmail} uploaded.` });
+    res.status(201).json({ success: `Profile picture for ${foundUser.email} uploaded.` });
   }catch(err){
     console.log(err);
     res.status(500).json({ message: err.message });
