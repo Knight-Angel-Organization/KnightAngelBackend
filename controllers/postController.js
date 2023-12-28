@@ -76,6 +76,7 @@ const addPost = asyncHandler(async (req, res) => {
         userID: _userID,
         userFirstName: foundUser.firstName,
         userLastName: foundUser.lastName,
+        username: foundUser.username,
         postContent: _postContent,
         postTitle: _postTitle,
         postLocation: _postLocation,

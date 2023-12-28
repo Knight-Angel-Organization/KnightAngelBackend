@@ -14,6 +14,10 @@ const postSchema = new Schema({
       type: String,
       required: true,
     },
+    username:{
+      type: String,
+      required: true,
+    },
     postContent: {
         type: String,
         required: true,
