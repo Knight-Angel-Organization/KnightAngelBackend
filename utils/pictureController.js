@@ -7,7 +7,6 @@ const path = require('path');
 const { MongoClient, ObjectId } = require('mongodb');
 const { userInfo } = require('os');
 const fileTypes = require("../config/fileType");
-const imageSchema = require("../model/Image");
 const { deleteFile: deleteB2File } = require("./pictureStuff/deleteBucketFile");
 const { uploadToB2 } = require("./pictureStuff/uploadController");
 const { id } = require('date-fns/locale');

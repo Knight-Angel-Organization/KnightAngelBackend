@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const imageSchema = require('./Image');
 
 const commentSchema = new Schema({
 
@@ -25,11 +26,6 @@ const commentSchema = new Schema({
 })
 
 const postSchema = new Schema({
-
-    userID: {
-        type: String,
-        required: true,
-    },
     userFirstName: {
       type: String,
       required: true,
@@ -37,6 +33,10 @@ const postSchema = new Schema({
     userLastName:{
       type: String,
       required: true,
+    },
+    username: {
+      type: String,
+      required:true,
     },
     postContent: {
         type: String,
@@ -50,12 +50,9 @@ const postSchema = new Schema({
       type: String,
       required: true,
     },
-    /*
-    postImages: {
-      type: String,
-      required: true,
-    },
-    */
+    
+    postImages: imageSchema,
+
     postType: {
       type: String,
       required: true,

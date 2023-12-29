@@ -4,6 +4,7 @@ const asyncHandler = require('express-async-handler');
 const path = require('path');
 const { ObjectId } = require('mongodb');
 const { add } = require('date-fns');
+const { uploadToB2 } = require("../utils/pictureStuff/uploadController")
 /*
 
 Current functionality:
@@ -33,7 +34,9 @@ To-do:
 const addPost = asyncHandler(async (req, res) => {
 
     // Get the user ID + post content, title, location and type from the request body. It is optional to have the location.
-    const _userID = req.body.userID;
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt
+    const foundUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
     const _postContent = req.body.postContent;
     const _postTitle = req.body.postTitle;
     const _postType = req.body.postType;
@@ -46,10 +49,8 @@ const addPost = asyncHandler(async (req, res) => {
         _postLocation = req.body.postLocation;
     }
 
-
     // Check if the user ID, post content, title, category and type are provided, if not, return an error message.
-
-    if (!_postContent || !_postTitle || !_postType || !_postCategory || !_userID) {
+    if (!_postContent || !_postTitle || !_postType || !_postCategory) {
         return res.status(400).json({ 'message': 'Error: Post content, title, category, type, and user ID are required.' });
     }
 
@@ -60,37 +61,58 @@ const addPost = asyncHandler(async (req, res) => {
         return res.status(400).json({ 'message': 'Error: Post title is too long. (100 characters maximum)' });
     }
 
-    // Verify user ID is a string of 24 hex characters
-    if (!/^[0-9a-fA-F]{24}$/.test(_userID)) {
-        return res.status(400).json({ 'message': 'User ID is invalid.' });
-    }
-
-    const foundUser = await User.findOne({ _id: new ObjectId(_userID) });
-
-    // If user ID is not found, return an error message.
-    if (!foundUser) {
-        return res.status(400).json({ 'message': 'Error: User ID is invalid.' });
-    }
-
-    // Create a new post by inserting the user information + post content, title, location and type into the database.
-    const newPost = await Post.create({
-        userID: _userID,
-        userFirstName: foundUser.firstName,
-        userLastName: foundUser.lastName,
-        postContent: _postContent,
-        postTitle: _postTitle,
-        postLocation: _postLocation,
-        // postImages: _postImages,
-        postType: _postType,
-        postCategory: _postCategory,
-        postLikes: []
-    });
-
-    // If the post is successfully created, return a success message, otherwise return an error message.
-    if (newPost) {
-        return res.status(201).json({ 'success': 'Post created successfully.' });
-    } else {
-        return res.status(400).json({ 'message': 'Error: Post could not be created.' });
+    if(foundUser){
+        if(!req.file){
+            try{
+                const newPost = await Post.create({
+                    userFirstName: foundUser.firstName,
+                    userLastName: foundUser.lastName,
+                    username: foundUser.username,
+                    postContent: _postContent,
+                    postTitle: _postTitle,
+                    postLocation: _postLocation,
+                    postType:_postType,
+                    postCategory:_postCategory,
+                    postLikes: []
+                })
+                console.log(newPost)
+                return res.status(201).json({ 'success': 'Post created successfully.' });
+            }catch(err){
+                console.log(err)
+                res.status(500).json({message: err.message})
+            }
+        }else{
+            try{
+                const { buffer, mimetype, originalname } = req.file;
+                const picInfo = await uploadToB2(buffer, mimetype, originalname);
+                const newPost = await Post.create({
+                    userFirstName: foundUser.firstName,
+                    userLastName: foundUser.lastName,
+                    username: foundUser.username,
+                    postContent: _postContent,
+                    postTitle: _postTitle,
+                    postLocation: _postLocation,
+                    postImages: {
+                        imageURL: picInfo.fileName,
+                        fileID: picInfo.id,
+                        fileName: picInfo.fileName,
+                        mimetype: mimetype,
+                        uploadDate: new Date()
+                    },
+                    postType:_postType,
+                    postCategory:_postCategory,
+                    postLikes: []
+                })
+                console.log(newPost)
+                return res.status(201).json({ 'success': 'Post created successfully.' });
+            }catch(err){
+                console.log(err)
+                res.status(500).json({message: err.message})
+            }
+        }
+        
+    }else{
+        return res.status(400).json({ 'message': 'Error: Not signed in.' });
     }
 });
 

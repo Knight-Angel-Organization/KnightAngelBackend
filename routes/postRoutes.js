@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const postController = require('../controllers/postController');
+const userController = require('../controllers/userController');
+const { upload } = require('../utils/pictureStuff/uploadController');
 const sendGrid = require('../utils/sendGrid');
 
 
 router.route('/create')
-    .post(postController.addPost)
-
+    .post(upload('uploadedImage') , postController.addPost)
+    
 router.route('/getPost')
     .get(postController.getPost)
 
