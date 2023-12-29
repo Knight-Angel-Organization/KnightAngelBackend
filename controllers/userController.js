@@ -10,7 +10,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 const handleNewUser = asyncHandler(async (req,res,next) => {
     const {fnIn, lnIn, emailIn, passwordIn, usernameIn, /* sqIn, sqaIn */} = req.body;
-    if(!fnIn || !lnIn || !emailIn || !passwordIn || !usernameIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, email, password, Security Question & Answer are required'});
+    if(!fnIn || !lnIn || !emailIn || !passwordIn || !usernameIn /* || !sqIn || !sqaIn */) return res.status(400).json({'message': 'Full name, username, email, password, are required'});
     
     // Make sure the email is valid, using validator package because regex had too many false positives and negatives
 
@@ -58,14 +58,20 @@ const handleNewUser = asyncHandler(async (req,res,next) => {
     }
     next()
 })
-const handleLogin = asyncHandler(async (req,res) => {
-    const cookies = req.cookies;
-    const {emailIn, passwordIn} = req.body;
-    if(!emailIn || !passwordIn ) return res.status(400).json({'message': 'email & password are required'});
-    const foundUser = await User.findOne({email: emailIn}).exec();
-    if(!foundUser) return res.sendStatus(401); //Unauthorized
-    //eval. password
-    const match = await bcrypt.compare(passwordIn, foundUser.password);
+
+const loginAndLogout = asyncHandler(async(req,res)=>{
+    const HTTPMethod = req.method;
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt //above lines check to see if the user is already signed in on current device.
+    if (HTTPMethod === 'POST'){//login is a HTTP post request
+        if(!JWTValue){
+        const cookies = req.cookies;
+        const {emailIn, passwordIn} = req.body;
+        if(!emailIn || !passwordIn ) return res.status(400).json({'message': 'email & password are required'});
+        const foundUser = await User.findOne({email: emailIn}).exec();
+        if(!foundUser) return res.sendStatus(401); //Unauthorized
+        //eval. password
+        const match = await bcrypt.compare(passwordIn, foundUser.password);
     if(match){
         //const roles = Object.values(foundUser.roles);
         //create JWT
@@ -84,7 +90,6 @@ const handleLogin = asyncHandler(async (req,res) => {
             process.env.REFRESH_TOKEN_SECRET,
             {expiresIn: '1d'}
         );
-
         const newRefreshTokenArray =
             !cookies?.jwt
                 ? foundUser.refreshToken
@@ -104,26 +109,30 @@ const handleLogin = asyncHandler(async (req,res) => {
     }else{
         res.sendStatus(401)
     }
-})
-const handleLogout = asyncHandler(async (req,res) => {
-    //on client, delete access token when logout is pushed.
-    const cookies = req.cookies;
-    if(!cookies?.jwt) return res.status(204); //no content
-    const refreshToken = cookies.jwt;
-
-    //is refresh token in db?    
-    const foundUser = await User.findOne({refreshToken}).exec();
-    if(!foundUser) {
-        res.clearCookie('jwt', {httpOnly: true, sameSite: 'None', /* secure: true */});
-        return res.sendStatus(204); //success but No content
+    }else{
+        return res.status(403).json({message: "You're already signed in"});
     }
-    //Delete refresh token in db
-    foundUser.refreshToken = foundUser.refreshToken.filter(newRT => newRT !== refreshToken);
-    const result = await foundUser.save();
-    console.log(result);//delete console.log(result) and similar ones in production.
-    res.clearCookie('jwt', {httpOnly: true}); //secure: true - only serves on https
-    res.sendStatus(204);
+    }else if (HTTPMethod === 'GET'){//logout is a HTTP GET Request
+        //on client, delete access token when logout is pushed.
+        const cookies = req.cookies;
+        if(!cookies?.jwt) return res.status(204); //no content
+        const refreshToken = cookies.jwt;
+
+        //is refresh token in db?    
+        const foundUser = await User.findOne({refreshToken}).exec();
+        if(!foundUser) {
+            res.clearCookie('jwt', {httpOnly: true, sameSite: 'None', /* secure: true */});
+            return res.sendStatus(204); //success but No content
+        }
+        //Delete refresh token in db
+        foundUser.refreshToken = foundUser.refreshToken.filter(newRT => newRT !== refreshToken);
+        const result = await foundUser.save();
+        console.log(result);//delete console.log(result) and similar ones in production.
+        res.clearCookie('jwt', {httpOnly: true}); //secure: true - only serves on https
+        res.sendStatus(204);
+    } 
 })
+
 const handleRefreshToken = asyncHandler(async (req,res) => {
     const cookies = req.cookies;
     if(!cookies?.jwt) return res.sendStatus(401);
@@ -278,5 +287,45 @@ const emergencyContacts = asyncHandler(async(req, res) => {
 
 
 })
-module.exports = {handleNewUser, handleLogin, handleLogout, handleRefreshToken, determineRequestType: determineRequestType(), getProfile, emergencyContacts }
+
+const followUser = asyncHandler(async(req,res)=>{
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt
+    const {usernameTapped} = req.body
+    try{
+        const currentUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
+        const followingUser = await User.findOne({username: usernameTapped}) //person that signed in user is trying to follow
+        if(!currentUser.followings.includes(followingUser.username)){
+            await currentUser.updateOne({$push:{followings:followingUser.username}})
+            await followingUser.updateOne({$push:{followers:currentUser.username}})
+            res.status(200).json(`You just followed ${followingUser.username}`)
+        }else{
+            res.status(403).json(`You already follow ${followingUser.username}`)
+        }
+    }catch{
+        res.status(500).json(err)
+    }
+})
+
+const unfollowUser = asyncHandler(async(req,res)=>{
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt
+    const {usernameTapped} = req.body
+    try{
+        const currentUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
+        const followingUser = await User.findOne({username: usernameTapped}) //person that signed in user is trying to follow
+        if(currentUser.followings.includes(followingUser.username)){
+            await currentUser.updateOne({$pull: {followings:followingUser.username}})
+            await followingUser.updateOne({$pull: {followers:currentUser.username}})
+            /* await currentUser.updateOne({$pull:{followings:followingUser.username}})
+            await followingUser.updateOne({$pull:{followers:currentUser.username}}) */
+            res.status(200).json(`You just unfollowed ${followingUser.username}`)
+        }else{
+            res.status(403).json(`You don't follow ${followingUser.username}`)
+        }
+    }catch{
+        res.status(500).json(err);
+    }
+})
+module.exports = {handleNewUser, loginAndLogout, handleRefreshToken, determineRequestType: determineRequestType(), getProfile, emergencyContacts, followUser, unfollowUser }
 

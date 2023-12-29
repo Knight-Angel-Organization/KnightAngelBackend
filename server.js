@@ -10,7 +10,7 @@ const verifyJWT = require('./middleware/verifyJWT');
 const cookieParser = require('cookie-parser');
 const credentials = require('./middleware/credentials');
 const mongoose = require('mongoose');
-const connectDB = require('./config/dbConn')
+const connectDB = require('./config/dbConn');
 const PORT = process.env.PORT || 3500;
 //everything under this functions like waterfall.
 
@@ -27,11 +27,11 @@ app.use(credentials);
 app.use(cors(corsOptions));
 
 //middleware to handle urlencoded form data
-app.use(express.urlencoded({extended:false}));
-
+app.use(express.urlencoded({ extended: false }));
 
 //middleware for json
 app.use(express.json());
+
 
 //middleware for cookies
 app.use(cookieParser());
@@ -42,12 +42,13 @@ app.use(cookieParser());
 //routes
 app.use('/users', require('./routes/userRoutes'))//routes to for user authentication
 app.use('/posts', require('./routes/postRoutes'))//routes for posts
-app.use(verifyJWT); //everything after this will user JWT refresh tokens. usually shorter around 5-10 min. 
+app.use("/test", require('./routes/testRoutes'))//routes for testing
+app.use(verifyJWT); //everything after this will user JWT refresh tokens. usually shorter around 5-10 min.
 
 // app.all('*', (req, res) => {
 //     res.status(404);
 //     if(req.accepts('html')){
-//         res.sendFile(path.join(__dirname, 'views', '404.html'));   
+//         res.sendFile(path.join(__dirname, 'views', '404.html'));
 //     }else if(req.accepts('json')){
 //         res.json({error: "404 Not Found"})
 //     }else{
