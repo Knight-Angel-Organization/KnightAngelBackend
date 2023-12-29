@@ -1,8 +1,7 @@
-const Post = require('../model/Post');
-const User = require('../model/User');
 const asyncHandler = require('express-async-handler');
-const path = require('path');
 const { ObjectId } = require('mongodb');
+const User = require('../model/User');
+const Post = require('../model/Post');
 /*
 
 Current functionality:
@@ -28,47 +27,51 @@ To-do:
 
 */
 
-
-const addPost = asyncHandler(async (req, res) => { 
-
-  // Get the user ID + post content, title, location and type from the request body. It is optional to have the location.
-  const _userID = req.body.userID;
-  const _postContent = req.body.postContent;
-  const _postTitle = req.body.postTitle;
-  const _postType = req.body.postType;
-  const _postCategory = req.body.postCategory;
-  let _postLocation;
-  // Check if post location is provided, if not, set it to "false".
+const addPost = asyncHandler(async (req, res) => {
+    // Get the user ID + post content, title, location and type from the request body. It is optional to have the location.
+    const _userID = req.body.userID;
+    const _postContent = req.body.postContent;
+    const _postTitle = req.body.postTitle;
+    const _postType = req.body.postType;
+    const _postCategory = req.body.postCategory;
+    let _postLocation;
+    // Check if post location is provided, if not, set it to "false".
     if (!req.body.postLocation) {
-        _postLocation = "false";
+        _postLocation = 'false';
     } else {
         _postLocation = req.body.postLocation;
     }
 
-
     // Check if the user ID, post content, title, category and type are provided, if not, return an error message.
 
-  if (!_postContent || !_postTitle || !_postType || !_postCategory || !_userID) {
-    return res.status(400).json({ 'message': 'Error: Post content, title, category, type, and user ID are required.' });
-  }
+    if (!_postContent || !_postTitle || !_postType || !_postCategory || !_userID) {
+        return res.status(400).json({
+            message: 'Error: Post content, title, category, type, and user ID are required.',
+        });
+    }
 
-  // If post content is longer than 1000 characters or post title is longer than 100 characters.
+    // If post content is longer than 1000 characters or post title is longer than 100 characters.
     if (_postContent.length > 1000) {
-        return res.status(400).json({ 'message': 'Error: Post content is too long. (1000 characters maximum)' });
-    } else if (_postTitle.length > 100) {
-        return res.status(400).json({ 'message': 'Error: Post title is too long. (100 characters maximum)' });
+        return res.status(400).json({
+            message: 'Error: Post content is too long. (1000 characters maximum)',
+        });
+    }
+    if (_postTitle.length > 100) {
+        return res.status(400).json({
+            message: 'Error: Post title is too long. (100 characters maximum)',
+        });
     }
 
     // Verify user ID is a string of 24 hex characters
     if (!/^[0-9a-fA-F]{24}$/.test(_userID)) {
-        return res.status(400).json({ 'message': 'User ID is invalid.' });
+        return res.status(400).json({ message: 'User ID is invalid.' });
     }
 
     const foundUser = await User.findOne({ _id: new ObjectId(_userID) });
 
     // If user ID is not found, return an error message.
     if (!foundUser) {
-        return res.status(400).json({ 'message': 'Error: User ID is invalid.' });
+        return res.status(400).json({ message: 'Error: User ID is invalid.' });
     }
 
     // Create a new post by inserting the user information + post content, title, location and type into the database.
@@ -82,15 +85,14 @@ const addPost = asyncHandler(async (req, res) => {
         postLocation: _postLocation,
         // postImages: _postImages,
         postType: _postType,
-        postCategory: _postCategory
+        postCategory: _postCategory,
     });
 
     // If the post is successfully created, return a success message, otherwise return an error message.
     if (newPost) {
-        return res.status(201).json({ 'success': 'Post created successfully.' });
-    } else {
-        return res.status(400).json({ 'message': 'Error: Post could not be created.' });
+        return res.status(201).json({ success: 'Post created successfully.' });
     }
+    return res.status(400).json({ message: 'Error: Post could not be created.' });
 });
 
 // Retrieve post from database by post ID.
@@ -100,12 +102,12 @@ const getPost = asyncHandler(async (req, res) => {
 
     // Check if the post ID is provided, if not, return an error message.
     if (!_postID) {
-        return res.status(400).json({ 'message': 'Error: Post ID is required.' });
+        return res.status(400).json({ message: 'Error: Post ID is required.' });
     }
 
     // Verify post ID is a string of 24 hex characters
     if (!/^[0-9a-fA-F]{24}$/.test(_postID)) {
-        return res.status(400).json({ 'message': 'Post ID is invalid.' });
+        return res.status(400).json({ message: 'Post ID is invalid.' });
     }
 
     // Check if the post ID is found in the database.
@@ -113,21 +115,21 @@ const getPost = asyncHandler(async (req, res) => {
 
     // If post ID is not found, return an error message.
     if (!foundPost) {
-        return res.status(400).json({ 'message': 'Error: Post ID is not found.' });
+        return res.status(400).json({ message: 'Error: Post ID is not found.' });
     }
 
     // If post ID is found, return the post.
     if (foundPost) {
-        return res.status(200).json({ 'post': foundPost });
+        return res.status(200).json({ post: foundPost });
     }
 });
 
 /*
 const addComment = asyncHandler(async (req, res) => {
-    
+
     // Get the post ID from the request body.
     const _postID = req.body.postID;
-    
+
     // Get the user ID + comment content from the request body.
     const _userID = req.body.userID;
     const _commentContent = req.body.commentContent;

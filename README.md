@@ -1,2 +1,3 @@
 ﻿# KnightAngelBackend
- Currently features register routes, authentication, and 2FA
+
+Currently features register routes, authentication, and 2FA
