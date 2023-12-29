@@ -5,23 +5,31 @@ const userController = require('../controllers/userController');
 const sendGrid = require('../utils/sendGrid');
 const pictureController = require('../utils/pictureController');
 
-router.route('/register').post(userController.handleNewUser).post(sendGrid.emailNewUser);
+router.route('/register')
+    .post(userController.handleNewUser)
+    .post(sendGrid.emailNewUser);
 
-router.route('/auth').get(userController.handleLogout).post(userController.handleLogin);
+router.route('/auth')
+    .get(userController.handleLogout)
+    .post(userController.handleLogin)
 
-router.route('/refresh').get(userController.handleRefreshToken);
+router.route('/refresh')
+    .get(userController.handleRefreshToken);
 
-router.route('/twofactor').post(sendGrid.TwoFAEmail);
+router.route('/twofactor')
+    .post(sendGrid.TwoFAEmail);
 
-router.route('/twofactorconfirm').post(sendGrid.ConfirmTwoFAEmail);
+router.route('/twofactorconfirm')
+    .post(sendGrid.ConfirmTwoFAEmail);
 
-router
-    .route('/profilepicture')
+router.route('/profilepicture')
     .post(pictureController.upload, pictureController.addProfilePicture)
     .get(pictureController.getProfilePicture);
 
-router.route('/emergencycontact').post(userController.emergencyContacts);
+router.route('/emergencycontact')
+    .post(userController.emergencyContacts);
 
-router.route('/profile').get(userController.getProfile);
+router.route('/profile')
+    .get(userController.getProfile);
 
 module.exports = router;
