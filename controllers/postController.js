@@ -61,7 +61,7 @@ const addPost = asyncHandler(async (req, res) => {
         return res.status(400).json({ 'message': 'Error: Post title is too long. (100 characters maximum)' });
     }
 
-    if(foundUser){
+if(foundUser){
         if(!req.file){
             try{
                 const newPost = await Post.create({
