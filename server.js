@@ -1,43 +1,43 @@
 require('dotenv').config();
 const express = require('express');
+
 const app = express();
 const path = require('path');
 const cors = require('cors');
-const corsOptions = require('./config/corsOptions')
+const cookieParser = require('cookie-parser');
+const mongoose = require('mongoose');
+const corsOptions = require('./config/corsOptions');
 const { logger } = require('./middleware/logEvents');
 const errorHandler = require('./middleware/errorHandler');
 const verifyJWT = require('./middleware/verifyJWT');
-const cookieParser = require('cookie-parser');
 const credentials = require('./middleware/credentials');
-const mongoose = require('mongoose');
-const connectDB = require('./config/dbConn');
-const PORT = process.env.PORT || 3500;
-//everything under this functions like waterfall.
+const connectDB = require('./config/dbConn');;
 
-//connect to MongoDB
+const PORT = process.env.PORT || 3500;
+// everything under this functions like waterfall.
+
+// connect to MongoDB
 connectDB();
 
-//custom logger middleware
+// custom logger middleware
 app.use(logger);
 
-//handles options credential chekc before CORS & fetch cookeis cred. requirement
+// handles options credential chekc before CORS & fetch cookeis cred. requirement
 app.use(credentials);
 
-//cross origin resource sharing
+// cross origin resource sharing
 app.use(cors(corsOptions));
 
-//middleware to handle urlencoded form data
-app.use(express.urlencoded({ extended: false }));
-
-//middleware for json
+// middleware to handle urlencoded form data
+app.use(express.urlencoded({  extended:  false  }));
+// middleware for json
 app.use(express.json());
-
 
 //middleware for cookies
 app.use(cookieParser());
 
-//servs static files
-//app.use('/', express.static(path.join(__dirname, '/public')));
+// servs static files
+// app.use('/', express.static(path.join(__dirname, '/public')));
 
 //routes
 app.use('/users', require('./routes/userRoutes'))//routes to for user authentication
@@ -61,4 +61,4 @@ app.use(errorHandler);
 mongoose.connection.once('open', () => {
     console.log('Connected to MongoDB');
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-})
+});

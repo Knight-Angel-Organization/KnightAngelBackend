@@ -44,7 +44,7 @@ const addPost = asyncHandler(async (req, res) => {
     let _postLocation;
     // Check if post location is provided, if not, set it to "false".
     if (!req.body.postLocation) {
-        _postLocation = "false";
+        _postLocation = 'false';
     } else {
         _postLocation = req.body.postLocation;
     }
@@ -56,9 +56,14 @@ const addPost = asyncHandler(async (req, res) => {
 
     // If post content is longer than 1000 characters or post title is longer than 100 characters.
     if (_postContent.length > 1000) {
-        return res.status(400).json({ 'message': 'Error: Post content is too long. (1000 characters maximum)' });
-    } else if (_postTitle.length > 100) {
-        return res.status(400).json({ 'message': 'Error: Post title is too long. (100 characters maximum)' });
+        return res.status(400).json({
+            message: 'Error: Post content is too long. (1000 characters maximum)',
+        });
+    }
+    if (_postTitle.length > 100) {
+        return res.status(400).json({
+            message: 'Error: Post title is too long. (100 characters maximum)',
+        });
     }
 
 if(foundUser){
@@ -114,6 +119,7 @@ if(foundUser){
     }else{
         return res.status(400).json({ 'message': 'Error: Not signed in.' });
     }
+    return res.status(400).json({ message: 'Error: Post could not be created.' });
 });
 
 // Retrieve all posts

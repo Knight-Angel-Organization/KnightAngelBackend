@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const userController = require('../controllers/userController');
 const sendGrid = require('../utils/sendGrid');
@@ -14,14 +15,11 @@ router.route('/auth')
     .get(userController.loginAndLogout)
     .post(userController.loginAndLogout)
 
-router.route('/refresh')
-    .get(userController.handleRefreshToken)
+router.route('/refresh').get(userController.handleRefreshToken);
 
-router.route('/twofactor')
-    .post(sendGrid.TwoFAEmail)
+router.route('/twofactor').post(sendGrid.TwoFAEmail);
 
-router.route('/twofactorconfirm')
-    .post(sendGrid.ConfirmTwoFAEmail)    
+router.route('/twofactorconfirm').post(sendGrid.ConfirmTwoFAEmail);
 
 router.route('/profilepicture')
     .post(upload('uploadedImage'), pictureController.addProfilePicture)
@@ -40,4 +38,4 @@ router.route('/follow')
 router.route('/unfollow')
     .put(userController.unfollowUser)
 
-module.exports = router
+module.exports = router;
