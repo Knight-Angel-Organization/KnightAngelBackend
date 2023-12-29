@@ -1,4 +1,4 @@
-const allowedOrigins = require('./allowedOrigins').default;
+const allowedOrigins = require('./allowedOrigins');
 // any connection based errors check here first to make sure IP or loacation that accessing to make sure its allowed
 const corsOptions = {
     origin: (origin, callback) => {

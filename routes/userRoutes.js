@@ -15,11 +15,14 @@ router.route('/auth')
     .get(userController.loginAndLogout)
     .post(userController.loginAndLogout)
 
-router.route('/refresh').get(userController.handleRefreshToken);
+router.route('/refresh')
+    .get(userController.handleRefreshToken);
 
-router.route('/twofactor').post(sendGrid.TwoFAEmail);
+router.route('/twofactor')
+    .post(sendGrid.TwoFAEmail);
 
-router.route('/twofactorconfirm').post(sendGrid.ConfirmTwoFAEmail);
+router.route('/twofactorconfirm')
+    .post(sendGrid.ConfirmTwoFAEmail);
 
 router.route('/profilepicture')
     .post(upload('uploadedImage'), pictureController.addProfilePicture)
