@@ -6,6 +6,7 @@ const cors = require('cors');
 const corsOptions = require('./config/corsOptions')
 const { logger } = require('./middleware/logEvents');
 const errorHandler = require('./middleware/errorHandler');
+const notFoundHandler = require('./middleware/notFoundHandler');
 const verifyJWT = require('./middleware/verifyJWT');
 const cookieParser = require('cookie-parser');
 const credentials = require('./middleware/credentials');
@@ -56,6 +57,7 @@ app.use(verifyJWT); //everything after this will user JWT refresh tokens. usuall
 //     }
 // });
 
+app.use(notFoundHandler);
 app.use(errorHandler);
 
 mongoose.connection.once('open', () => {
