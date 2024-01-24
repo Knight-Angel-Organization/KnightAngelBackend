@@ -76,6 +76,7 @@ const loginAndLogout = asyncHandler(async (req, res) => {
                 //const roles = Object.values(foundUser.roles);
                 //create JWT
                 //requiring users to logout after a certain amount of time.
+                const exp = new Date() + 0;
                 const accessToken = jwt.sign(
                     {
                         "UserInfo": {
@@ -83,12 +84,12 @@ const loginAndLogout = asyncHandler(async (req, res) => {
                         }
                     },
                     process.env.ACCESS_TOKEN_SECRET,
-                    { expiresIn: '30s' }
+                    { expiresIn: exp + 1 * 60 * 60 * 1000 }
                 );
                 const NewRefreshToken = jwt.sign(
                     { "email": foundUser.email },
                     process.env.REFRESH_TOKEN_SECRET,
-                    { expiresIn: '1d' }
+                    { expiresIn: exp + 24 * 60 * 60 * 1000 }
                 );
                 const newRefreshTokenArray =
                     !cookies?.access_token
@@ -105,7 +106,7 @@ const loginAndLogout = asyncHandler(async (req, res) => {
                 console.log(result);
 
                 //secure cookie w/ refresh token
-                res.cookie('access_token', accessToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 30 * 1000 })
+                res.cookie('access_token', accessToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 1 * 60 * 60 * 1000 })
                 res.cookie('refresh_token', NewRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000 });
                 res.json({
                     message: `Welcome back ${foundUser.firstName} ${foundUser.lastName}`,
@@ -147,6 +148,11 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
     if (!refreshToken) {
         return res.sendStatus(401);
     }
+    // ifr refresh token is expired, return 403
+    if (jwt.decode(refreshToken).expiresIn < Date.now() / 1000) {
+        return res.status(403).json({ message: 'Refresh token expired' });
+    }
+
     res.clearCookie('refresh_token', { httpOnly: true, sameSite: 'None', /* secure: true */ }); // deletes cookie after getting data
 
     const foundUser = await User.findOne({ refreshToken }).exec();
@@ -180,6 +186,7 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
             if (err || foundUser.email !== decoded.email) return res.sendStatus(403);
             //refresh token was still valid
             //const roles = Object.values(foundUser.roles);
+            const exp = new Date() + 0;
             const accessToken = jwt.sign(
                 {
                     "UserInfo": {
@@ -187,13 +194,13 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
                     }
                 },
                 process.env.ACCESS_TOKEN_SECRET,
-                { expiresIn: '30s' }
+                { expiresIn: exp + 1 * 60 * 60 * 1000 }
             );
 
             const newRefreshToken = jwt.sign(
                 { "email": foundUser.email },
                 process.env.REFRESH_TOKEN_SECRET,
-                { expiresIn: '1d' }
+                { expiresIn: exp + 24 * 60 * 60 * 1000 }
             );
             //saves refresh token to current user
             foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
@@ -252,7 +259,7 @@ const getProfile = asyncHandler(async (req, res) => {
         const allCookies = req.cookies;
         const JWTValue = allCookies.refresh_token;
         if (!JWTValue) {
-          return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+            return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
         }
         //change to something else that will identify other users in different locations(feed page, services, etc.)
         const { emailIn } = req.body;
