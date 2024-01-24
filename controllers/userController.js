@@ -145,8 +145,11 @@ const loginAndLogout = asyncHandler(async (req, res) => {
         }
     } else if (HTTPMethod === 'GET') {//logout is a HTTP GET Request
         //on client, delete access token when logout is pushed.
-        const cookies = req.cookies;
-        if (!cookies?.access_token) return res.status(204); //no content
+        const { cookies } = req;
+        if (!cookies?.access_token) {
+            res.status(204);
+            throw new Error('No content');
+        } //no content
         const refreshToken = cookies.refresh_token;
 
         //is refresh token in db?
@@ -268,9 +271,13 @@ const getProfile = asyncHandler(async (req, res) => {
         //retrives cookies if trying to look at own profile.
         const allCookies = req.cookies;
         const JWTValue = allCookies.refresh_token;
-        if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+        if (!JWTValue) {
+          return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+        }
         const foundUser = await User.findOne({ refreshToken: JWTValue }).exec();
-        if (!foundUser) return res.status(404).json({ message: 'User not found' });
+        if (!foundUser) {
+          return res.status(404).json({ message: 'User not found' });
+        }
         // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
         if (foundUser.profilePic) {
             const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
@@ -290,7 +297,9 @@ const getProfile = asyncHandler(async (req, res) => {
         //change to something else that will identify other users in different locations(feed page, services, etc.)
         const { emailIn } = req.body;
         const foundUser = await User.findOne({ email: emailIn }).exec();
-        if (!foundUser) return res.status(404).json({ message: 'User not found' });
+        if (!foundUser) {
+          return res.status(404).json({ message: 'User not found' });
+        }
         // Return the user's profile with relevant information (first name, last name, profile picture). Returns a 'default' profile picture if the profilePic object is missing
         if (foundUser.profilePic) {
             const { firstName, lastName, email, profilePic: { imageURL } } = foundUser;
@@ -306,7 +315,9 @@ const getProfile = asyncHandler(async (req, res) => {
 const emergencyContacts = asyncHandler(async (req, res) => {
     //change emailIn to something else later, as its only for testing RN. Route will only be ran when user is signed into app.
     const { userEmail, friendEmail } = req.body
-    if (userEmail == friendEmail) return res.status(405).json({ message: `You may not enter your own email address` });
+    if (userEmail == friendEmail) {
+      return res.status(405).json({ message: `You may not enter your own email address` });
+    }
 
     const foundFriendsEmail = await User.findOne({ email: friendEmail }).exec();
     const foundUserEmail = await User.findOne({ email: userEmail }).exec();
@@ -318,10 +329,18 @@ const emergencyContacts = asyncHandler(async (req, res) => {
        3. Friend's email address is not already in the user's emergency contacts
        4. User has less than 10 emergency contacts    */
 
-    if (!foundFriendsEmail) return res.status(404).json({ message: `Friend's email address is not found` });
-    if (!foundUserEmail) return res.status(404).json({ message: `User's email address not found` });
-    if (foundUserEmail.emergencyContacts.includes(foundFriendsEmail.email)) return res.status(409).json({ message: `Friend's contact already added` });
-    if (foundUserEmail.emergencyContacts.length >= 10) return res.status(403).json({ message: `You may only have up to 10 emergency contacts` });
+    if (!foundFriendsEmail) {
+      return res.status(404).json({ message: `Friend's email address is not found` });
+    }
+    if (!foundUserEmail) {
+      return res.status(404).json({ message: `User's email address not found` });
+    }
+    if (foundUserEmail.emergencyContacts.includes(foundFriendsEmail.email)) {
+      return res.status(409).json({ message: `Friend's contact already added` });
+    }
+    if (foundUserEmail.emergencyContacts.length >= 10) {
+      return res.status(403).json({ message: `You may only have up to 10 emergency contacts` });
+    }
 
     // Functionality for adding the emergency contact
 
