@@ -119,28 +119,34 @@ const loginAndLogout = asyncHandler(async (req, res) => {
     } else if (HTTPMethod === 'GET') {//logout is a HTTP GET Request
         //on client, delete access token when logout is pushed.
         const cookies = req.cookies;
-        if (!cookies?.jwt) return res.status(204); //no content
-        const refreshToken = cookies.jwt;
+        if (!cookies?.access_token) return res.status(204); //no content
+        const refreshToken = cookies.refresh_token;
 
         //is refresh token in db?
         const foundUser = await User.findOne({ refreshToken }).exec();
-        if (!foundUser) {
-            res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', /* secure: true */ });
-            return res.sendStatus(204); //success but No content
+
+        if (foundUser) {
+            foundUser.refreshToken = foundUser.refreshToken.filter(newRT => newRT !== refreshToken);
+            const result = await foundUser.save();
         }
-        //Delete refresh token in db
-        foundUser.refreshToken = foundUser.refreshToken.filter(newRT => newRT !== refreshToken);
-        const result = await foundUser.save();
-        console.log(result);//delete console.log(result) and similar ones in production.
-        res.clearCookie('jwt', { httpOnly: true }); //secure: true - only serves on https
-        res.sendStatus(204);
+        res.clearCookie('access_token', { httpOnly: true, sameSite: 'None', /* secure: true */ });
+        res.clearCookie('refresh_token', { httpOnly: true, sameSite: 'None', /* secure: true */ });
+
+        // Delete refresh token in db
+
+        res.sendStatus(204); //success but No content
+        res.send({
+            message: "You're already logged out",
+        })
     }
 })
 
 const handleRefreshToken = asyncHandler(async (req, res) => {
     const cookies = req.cookies;
-    if (!cookies?.jwt) return res.sendStatus(401);
-    const refreshToken = cookies.jwt;
+    const refreshToken = cookies.refresh_token;
+    if (!refreshToken) {
+      return res.sendStatus(401);
+    }
     res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', /* secure: true */ }); // deletes cookie after getting data
 
     const foundUser = await User.findOne({ refreshToken }).exec();
