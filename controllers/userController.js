@@ -145,9 +145,9 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
     const cookies = req.cookies;
     const refreshToken = cookies.refresh_token;
     if (!refreshToken) {
-      return res.sendStatus(401);
+        return res.sendStatus(401);
     }
-    res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', /* secure: true */ }); // deletes cookie after getting data
+    res.clearCookie('refresh_token', { httpOnly: true, sameSite: 'None', /* secure: true */ }); // deletes cookie after getting data
 
     const foundUser = await User.findOne({ refreshToken }).exec();
 
@@ -199,7 +199,8 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
             foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
             const result = await foundUser.save();
 
-            res.cookie('jwt', newRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000 });
+            res.cookie('access_token', accessToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 30 * 1000 })
+            res.cookie('refresh_token', newRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000 });
             res.json({ accessToken })
         }
     )
