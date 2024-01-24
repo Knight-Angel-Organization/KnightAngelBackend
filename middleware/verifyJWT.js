@@ -18,9 +18,8 @@ const verifyJWT = (req, res, next) => {
                 res.status(403);
                 throw new Error(err.message);
             } //token is invalid
-            req.user = decoded.UserInfo.username;
-            req.roles = decoded.UserInfo.roles
-            console.log(req.user);
+            req.user = decoded.UserInfo.email;
+            console.log("Request User: ", req.user);
             next();
         }
     )

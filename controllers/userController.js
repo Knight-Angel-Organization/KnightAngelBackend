@@ -76,7 +76,7 @@ const loginAndLogout = asyncHandler(async (req, res) => {
                 //const roles = Object.values(foundUser.roles);
                 //create JWT
                 //requiring users to logout after a certain amount of time.
-                const exp = new Date() + 0;
+                const exp = new Date().getTime();
                 const accessToken = jwt.sign(
                     {
                         "UserInfo": {
@@ -106,7 +106,7 @@ const loginAndLogout = asyncHandler(async (req, res) => {
                 console.log(result);
 
                 //secure cookie w/ refresh token
-                res.cookie('access_token', accessToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 1 * 60 * 60 * 1000 })
+                res.cookie('access_token', accessToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 12 * 60 * 60 * 1000 })
                 res.cookie('refresh_token', NewRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000 });
                 res.json({
                     message: `Welcome back ${foundUser.firstName} ${foundUser.lastName}`,
@@ -186,7 +186,7 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
             if (err || foundUser.email !== decoded.email) return res.sendStatus(403);
             //refresh token was still valid
             //const roles = Object.values(foundUser.roles);
-            const exp = new Date() + 0;
+            const exp = new Date().getTime();
             const accessToken = jwt.sign(
                 {
                     "UserInfo": {
