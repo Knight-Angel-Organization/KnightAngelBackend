@@ -234,7 +234,7 @@ const getProfile = asyncHandler(async (req, res) => {
     if (HTTPMethod === 'GET') {
         //retrives cookies if trying to look at own profile.
         const allCookies = req.cookies;
-        const JWTValue = allCookies.jwt
+        const JWTValue = allCookies.refresh_token;
         if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
         const foundUser = await User.findOne({ refreshToken: JWTValue }).exec();
         if (!foundUser) return res.status(404).json({ message: 'User not found' });
@@ -250,8 +250,10 @@ const getProfile = asyncHandler(async (req, res) => {
     } else if (HTTPMethod === 'POST') {
         //retrives cookies to confirm user is signed in.
         const allCookies = req.cookies;
-        const JWTValue = allCookies.jwt
-        if (!JWTValue) return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+        const JWTValue = allCookies.refresh_token;
+        if (!JWTValue) {
+          return res.status(400).json({ message: `User not signed in: ${JWTValue}` });
+        }
         //change to something else that will identify other users in different locations(feed page, services, etc.)
         const { emailIn } = req.body;
         const foundUser = await User.findOne({ email: emailIn }).exec();
@@ -301,7 +303,7 @@ const emergencyContacts = asyncHandler(async (req, res) => {
 
 const followUser = asyncHandler(async (req, res) => {
     const allCookies = req.cookies;
-    const JWTValue = allCookies.jwt
+    const JWTValue = allCookies.refresh_token;
     const { usernameTapped } = req.body
     try {
         const currentUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
@@ -320,7 +322,7 @@ const followUser = asyncHandler(async (req, res) => {
 
 const unfollowUser = asyncHandler(async (req, res) => {
     const allCookies = req.cookies;
-    const JWTValue = allCookies.jwt
+    const JWTValue = allCookies.refresh_token;
     const { usernameTapped } = req.body
     try {
         const currentUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
