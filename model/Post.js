@@ -66,7 +66,7 @@ const postSchema = new Schema({
     postLikes: [String],
     postComments: [commentSchema],
       
-    date: {
+    postDate: {
       type: Date,
       default: Date.now,
   //     date will be set to the time the post is created
