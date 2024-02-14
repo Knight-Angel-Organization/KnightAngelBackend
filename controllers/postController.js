@@ -1,10 +1,9 @@
-const Post = require('../model/Post');
-const User = require('../model/User');
 const asyncHandler = require('express-async-handler');
-const path = require('path');
 const { ObjectId } = require('mongodb');
 const { add } = require('date-fns');
 const { uploadToB2 } = require("../utils/pictureStuff/uploadController")
+const User = require('../model/User');
+const Post = require('../model/Post');
 /*
 
 Current functionality:
@@ -30,7 +29,6 @@ To-do:
 
 */
 
-
 const addPost = asyncHandler(async (req, res) => {
 
     // Get the user ID + post content, title, location and type from the request body. It is optional to have the location.
@@ -50,12 +48,22 @@ const addPost = asyncHandler(async (req, res) => {
     }
 
     // Check if the user ID, post content, title, category and type are provided, if not, return an error message.
-    if (!_postContent || !_postTitle || !_postType || !_postCategory) {
-        return res.status(400).json({ 'message': 'Error: Post content, title, category, type, and user ID are required.' });
-    }
+      if (!_postContent || !_postTitle || !_postType || !_postCategory) {
+            return res.status(400).json({
+            message: 'Error: Post content, title, category, type, and user ID are required.',
+        });
+      }
 
-    // If post content is longer than 1000 characters or post title is longer than 100 characters.
+      // If post content is longer than 1000 characters or post title is longer than 100 characters.
     if (_postContent.length > 1000) {
+        return res.status(400).json({
+            message: 'Error: Post content is too long. (1000 characters maximum)',
+        });
+    }
+    if (_postTitle.length > 100) {
+        return res.status(400).json({
+            message: 'Error: Post title is too long. (100 characters maximum)',
+        });
         return res.status(400).json({
             message: 'Error: Post content is too long. (1000 characters maximum)',
         });
@@ -161,8 +169,10 @@ const getPost = asyncHandler(async (req, res) => {
 /*
 const addComment = asyncHandler(async (req, res) => {
 
+
     // Get the post ID from the request body.
     const _postID = req.body.postID;
+
 
     // Get the user ID + comment content from the request body.
     const _userID = req.body.userID;

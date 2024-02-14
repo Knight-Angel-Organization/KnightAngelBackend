@@ -8,6 +8,9 @@ const multer = require('multer');
 const User = require('../model/User');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const User = require('../model/User');
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const handleNewUser = asyncHandler(async (req, res, next) => {
     const { fnIn, lnIn, emailIn, passwordIn, usernameIn /* sqIn, sqaIn */ } = req.body;
@@ -98,6 +101,7 @@ const loginAndLogout = asyncHandler(async(req,res)=>{
                 },
             },
             process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: '30s' }
             { expiresIn: '30s' }
         );
         const NewRefreshToken = jwt.sign({ email: foundUser.email }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });

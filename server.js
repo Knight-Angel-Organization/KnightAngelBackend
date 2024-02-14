@@ -1,12 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 
+
 const app = express();
 const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
-const corsOptions = require('./config/corsOptions');
+const cookieParser = require('cookie-parser');
+const mongoose = require('mongoose');
+const corsOptions = require('./config/corsOptions');;
 const { logger } = require('./middleware/logEvents');
 const errorHandler = require('./middleware/errorHandler');
 const verifyJWT = require('./middleware/verifyJWT');
@@ -14,9 +17,9 @@ const credentials = require('./middleware/credentials');
 const connectDB = require('./config/dbConn');;
 
 const PORT = process.env.PORT || 3500;
-// everything under this functions like waterfall.
+//  everything under this functions like waterfall.
 
-// connect to MongoDB
+//  connect to MongoDB
 connectDB();
 
 // custom logger middleware
@@ -25,7 +28,7 @@ app.use(logger);
 // handles options credential chekc before CORS & fetch cookeis cred. requirement
 app.use(credentials);
 
-// cross origin resource sharing
+//  cross origin resource sharing
 app.use(cors(corsOptions));
 
 // middleware to handle urlencoded form data
@@ -33,7 +36,7 @@ app.use(express.urlencoded({  extended:  false  }));
 // middleware for json
 app.use(express.json());
 
-//middleware for cookies
+// middleware for cookies
 app.use(cookieParser());
 
 // servs static files
