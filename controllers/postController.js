@@ -93,7 +93,7 @@ if(foundUser){
                     postTitle: _postTitle,
                     postLocation: _postLocation,
                     postImages: {
-                        imageURL: picInfo.fileName,
+                        imageURL: 'https://f005.backblazeb2.com/file/knightangel/' + picInfo.fileName,
                         fileID: picInfo.id,
                         fileName: picInfo.fileName,
                         mimetype: mimetype,
