@@ -21,4 +21,6 @@ router.route('/delete')
 router.route('/like')
     .post(postController.likePost)
 
+router.route('/addComment')
+    .post(postController.addComment)
 module.exports = router

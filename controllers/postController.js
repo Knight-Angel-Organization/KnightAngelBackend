@@ -1,5 +1,6 @@
 const Post = require('../model/Post');
 const User = require('../model/User');
+const Comment = require('../model/Comment');
 const asyncHandler = require('express-async-handler');
 const path = require('path');
 const { ObjectId } = require('mongodb');
@@ -152,17 +153,13 @@ const getPost = asyncHandler(async (req, res) => {
 
 });
 
-/*
+
 const addComment = asyncHandler(async (req, res) => {
 
-    // Get the post ID from the request body.
     const _postID = req.body.postID;
-
-    // Get the user ID + comment content from the request body.
     const _userID = req.body.userID;
     const _commentContent = req.body.commentContent;
 
-    // Check if the post ID, user ID, and comment content are provided, if not, return an error message.
     if (!_postID || !_userID || !_commentContent) {
         return res.status(400).json({ 'message': 'Error: Post ID, user ID, and comment content are required.' });
     }
@@ -172,18 +169,38 @@ const addComment = asyncHandler(async (req, res) => {
         return res.status(400).json({ 'message': 'Post ID or user ID is invalid.' });
     }
 
-    // Check if the post ID is found in the database.
+    // Check if the post ID is in database
     const foundPost = await Post.findOne({ _id: new ObjectId(_postID) });
 
-    // If post ID is not found, return an error message.
     if (!foundPost) {
         return res.status(400).json({ 'message': 'Error: Post ID is invalid.' });
     }
 
-    // Finish rest of code here
+    // Check if the user ID exists
+    const foundUser = await User.findOne({ _id: new ObjectId(_userID) });
+
+    // Keep same error message to prevent username enumeration
+    if (!foundUser) {
+        return res.status(400).json({ 'message': 'Post ID or user ID is invalid.' });
+    }
+
+    const newComment = {
+        postID: _postID,
+        username: foundUser.username,
+        commentContent: _commentContent,
+        commentReactions: []
+    };
+
+    const addedComment = await Comment.create(newComment);
+
+    if (addedComment) {
+        return res.status(201).json({ 'success': 'Comment added successfully.' });
+    } else {
+        return res.status(400).json({ 'message': 'Error: Comment could not be added.' });
+    }
 
 });
-*/
+
 
 const editPost = asyncHandler(async (req, res) => {
 
@@ -292,4 +309,4 @@ const likePost = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { addPost, getPost, editPost, deletePost, likePost };
+module.exports = { addPost, getPost, editPost, deletePost, likePost, addComment };
