@@ -2,29 +2,6 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const imageSchema = require('./Image');
 
-const commentSchema = new Schema({
-
-  commentID: {
-    type: String,
-    required:true,
-  },
-  commentOwner:{
-    type: String,
-  },
-  commentContent:{
-    type: String,
-  },
-
-  commentLikes: [String],
-
-  commentDate:{
-    type: Date,
-    default: Date.now,
-    //stored in UTC Yr.-Mon.-Day HR:Min.:Sec.:NanoSec.
-  }
-
-})
-
 const postSchema = new Schema({
     userFirstName: {
       type: String,
@@ -64,7 +41,6 @@ const postSchema = new Schema({
     },
 
     postLikes: [String],
-    postComments: [commentSchema],
       
     postDate: {
       type: Date,
