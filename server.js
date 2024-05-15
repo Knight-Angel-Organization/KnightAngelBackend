@@ -11,6 +11,7 @@ const cookieParser = require('cookie-parser');
 const credentials = require('./middleware/credentials');
 const mongoose = require('mongoose');
 const connectDB = require('./config/dbConn');
+const notFoundHandler = require('./middleware/notFoundHandler');
 const PORT = process.env.PORT || 3500;
 //everything under this functions like waterfall.
 
@@ -56,6 +57,7 @@ app.use(verifyJWT); //everything after this will user JWT refresh tokens. usuall
 //     }
 // });
 
+app.use(notFoundHandler);
 app.use(errorHandler);
 
 mongoose.connection.once('open', () => {
