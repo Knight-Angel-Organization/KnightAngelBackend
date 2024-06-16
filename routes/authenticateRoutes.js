@@ -4,9 +4,6 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 
 const postRoutes = require('./postRoutes');
-const { ro } = require('date-fns/locale');
-const verifyJWT = require('../middleware/verifyJWT');
-
 
 /**
  * This routing file is for authenticated routes
@@ -26,14 +23,13 @@ const verifyJWT = require('../middleware/verifyJWT');
  *
  */
 
-router.use(verifyJWT);
-
 // example 1
 router.use("/post", postRoutes);
 
 // example 2
 router.route("/user/me").get(userController.getProfile);
 
+// not recommended
 router.route("/test").get((req, res) => {
     const { user_id, username, email, isVerified } = req.user;
     res.json({ user_id, username, email, isVerified });
