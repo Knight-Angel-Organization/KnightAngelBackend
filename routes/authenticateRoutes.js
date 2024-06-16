@@ -26,11 +26,5 @@ router.use("/post", postRoutes);
 // example 2
 router.route("/user/me").get(userController.getProfile);
 
-router.route("/auth").get((req, res) => {
-    res.json({
-        message: "Hello World"
-    });
-});
-
 
 module.exports = router;

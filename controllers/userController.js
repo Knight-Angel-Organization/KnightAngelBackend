@@ -80,10 +80,12 @@ const loginAndLogout = asyncHandler(async (req, res) => {
                     {
                         "UserInfo": {
                             "email": foundUser.email,
+                            "username": foundUser.username,
+                            "isVerified": foundUser.isVerified,
                         }
                     },
                     process.env.ACCESS_TOKEN_SECRET,
-                    { expiresIn: '30s' }
+                    { expiresIn: '5m' }
                 );
                 const NewRefreshToken = jwt.sign(
                     { "email": foundUser.email },
@@ -173,7 +175,9 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
             const accessToken = jwt.sign(
                 {
                     "UserInfo": {
-                        "email": decoded.email,
+                        "email": foundUser.email,
+                        "username": foundUser.username,
+                        "isVerified": foundUser.isVerified,
                     }
                 },
                 process.env.ACCESS_TOKEN_SECRET,

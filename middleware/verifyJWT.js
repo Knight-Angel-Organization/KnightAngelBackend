@@ -22,6 +22,7 @@ const verifyJWT = (req, res, next) => {
                 res.status(403);
                 throw new Error(err.message);
             } //token is invalid
+            console.log(decoded);
             req.user = decoded.UserInfo
             next();
         }
