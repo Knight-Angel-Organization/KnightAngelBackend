@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 
-
 const verifyJWT = (req, res, next) => {
     const authHeader = req.headers.authorization || req.headers.Authorization;
 
@@ -9,8 +8,11 @@ const verifyJWT = (req, res, next) => {
         throw new Error('Not Authorized');
     }
 
-
     const token = authHeader.split(' ')[1];
+    if (!token) {
+        res.status(401);
+        throw new Error('Not Authorized');
+    }
 
     jwt.verify(
         token,
@@ -20,11 +22,10 @@ const verifyJWT = (req, res, next) => {
                 res.status(403);
                 throw new Error(err.message);
             } //token is invalid
-            req.user = decoded.UserInfo.username;
-            req.roles = decoded.UserInfo.roles
+            req.user = decoded.UserInfo
             next();
         }
-    )
-}
+    );
+};
 
 module.exports = verifyJWT;
