@@ -4,6 +4,8 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 
 const postRoutes = require('./postRoutes');
+const { ro } = require('date-fns/locale');
+const verifyJWT = require('../middleware/verifyJWT');
 
 
 /**
@@ -15,10 +17,16 @@ const postRoutes = require('./postRoutes');
  * object in the request object
  *
  * @example
+ * const id = req.user_id
  * const username = req.username
- * const roles = req.roles
+ * const email = req.email
+ * const isVerified = req.isVerified
+ * @deprecated const roles = req.roles, not
+ * implemented yet
  *
  */
+
+router.use(verifyJWT);
 
 // example 1
 router.use("/post", postRoutes);
@@ -26,5 +34,9 @@ router.use("/post", postRoutes);
 // example 2
 router.route("/user/me").get(userController.getProfile);
 
+router.route("/test").get((req, res) => {
+    const { user_id, username, email, isVerified } = req.user;
+    res.json({ user_id, username, email, isVerified });
+});
 
 module.exports = router;

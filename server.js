@@ -46,7 +46,7 @@ app.use('/posts', require('./routes/postRoutes'))//routes for posts
 /* app.use("/test", require('./routes/testRoutes'))//routes for testing */
 
 //everything after this will user JWT refresh tokens. usually shorter around 5-10 min.
-app.use('/v1', verifyJWT, require("./routes/authenticateRoutes")); //routes for authenticated users
+app.use(require("./routes/authenticateRoutes")); //routes for authenticated users
 
 app.post("/test", (req, res) => {
     console.log(req.user);

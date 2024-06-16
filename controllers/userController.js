@@ -79,6 +79,7 @@ const loginAndLogout = asyncHandler(async (req, res) => {
                 const accessToken = jwt.sign(
                     {
                         "UserInfo": {
+                            "user_id": foundUser._id,
                             "email": foundUser.email,
                             "username": foundUser.username,
                             "isVerified": foundUser.isVerified,
@@ -175,6 +176,7 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
             const accessToken = jwt.sign(
                 {
                     "UserInfo": {
+                        "user_id": foundUser._id,
                         "email": foundUser.email,
                         "username": foundUser.username,
                         "isVerified": foundUser.isVerified,
