@@ -7,8 +7,8 @@ const sendGrid = require('../utils/sendGrid');
 
 
 router.route('/create')
-    .post(upload('uploadedImage') , postController.addPost)
-    
+    .post(upload('uploadedImage'), postController.addPost)
+
 router.route('/getPost')
     .get(postController.getPost)
 

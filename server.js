@@ -11,6 +11,7 @@ const cookieParser = require('cookie-parser');
 const credentials = require('./middleware/credentials');
 const mongoose = require('mongoose');
 const connectDB = require('./config/dbConn');
+const notFoundHandler = require('./middleware/notFoundHandler');
 const PORT = process.env.PORT || 3500;
 //everything under this functions like waterfall.
 
@@ -43,7 +44,15 @@ app.use(cookieParser());
 app.use('/users', require('./routes/userRoutes'))//routes to for user authentication
 app.use('/posts', require('./routes/postRoutes'))//routes for posts
 /* app.use("/test", require('./routes/testRoutes'))//routes for testing */
-app.use(verifyJWT); //everything after this will user JWT refresh tokens. usually shorter around 5-10 min.
+
+//everything after this will user JWT refresh tokens. usually shorter around 5-10 min.
+app.use('/v1', verifyJWT, require("./routes/authenticateRoutes")); //routes for authenticated users
+
+app.post("/public", (req, res) => {
+    res.send({
+        message: "This is a public route"
+    });
+})
 
 // app.all('*', (req, res) => {
 //     res.status(404);
@@ -56,6 +65,7 @@ app.use(verifyJWT); //everything after this will user JWT refresh tokens. usuall
 //     }
 // });
 
+app.use(notFoundHandler);
 app.use(errorHandler);
 
 mongoose.connection.once('open', () => {
