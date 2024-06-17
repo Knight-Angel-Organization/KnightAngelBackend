@@ -106,9 +106,25 @@ const loginAndLogout = asyncHandler(async (req, res) => {
                 const result = await foundUser.save();
                 console.log(result);
 
-                //secure cookie w/ refresh token
-                res.cookie('jwt', NewRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000 });
-                res.json({ accessToken });
+                  /**
+                 * @todo
+                 * Standardize the cookie or header method for passing the JWT token
+                 *
+                 * This is a temporary solution to allow both cookies and headers to pass the JWT token
+                 * The change will directly affect the @module verifyJWT middleware. (@file middleware/verifyJWT.js)
+                 */
+
+                // secure cookie w/ refresh token
+                res.cookie('refreshjwt', NewRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 2 * 24 * 60 * 60 * 1000 });
+
+                // secure cookie w/ access token
+                res.cookie('jwt', accessToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000 });
+
+                // Send the access token and refresh token to the client
+                res.json({
+                    accessToken: accessToken,
+                    refreshToken: NewRefreshToken
+                });
             } else {
                 res.sendStatus(401)
             }
