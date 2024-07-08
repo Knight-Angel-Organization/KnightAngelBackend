@@ -115,15 +115,16 @@ const loginAndLogout = asyncHandler(async (req, res) => {
                  */
 
                 // secure cookie w/ refresh token
-                res.cookie('refreshjwt', NewRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 2 * 24 * 60 * 60 * 1000 });
+                res.cookie('jwt', NewRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 2 * 24 * 60 * 60 * 1000 });
 
                 // secure cookie w/ access token
-                res.cookie('jwt', accessToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000 });
+                res.cookie('accessjwt', accessToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000 });
 
                 // Send the access token and refresh token to the client
                 res.json({
+                    refreshToken: NewRefreshToken,
                     accessToken: accessToken,
-                    refreshToken: NewRefreshToken
+                    
                 });
             } else {
                 res.sendStatus(401)
@@ -140,7 +141,7 @@ const loginAndLogout = asyncHandler(async (req, res) => {
         //is refresh token in db?
         const foundUser = await User.findOne({ refreshToken }).exec();
         if (!foundUser) {
-            res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', /* secure: true */ });
+            res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', /* secure: true */ })
             return res.sendStatus(204); //success but No content
         }
         //Delete refresh token in db
@@ -148,6 +149,7 @@ const loginAndLogout = asyncHandler(async (req, res) => {
         const result = await foundUser.save();
         console.log(result);//delete console.log(result) and similar ones in production.
         res.clearCookie('jwt', { httpOnly: true }); //secure: true - only serves on https
+        res.clearCookie('accessjwt', { httpOnly: true });
         res.sendStatus(204);
     }
 })
