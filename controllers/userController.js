@@ -115,10 +115,10 @@ const loginAndLogout = asyncHandler(async (req, res) => {
                  */
 
                 // secure cookie w/ refresh token
-                res.cookie('jwt', NewRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 2 * 24 * 60 * 60 * 1000 });
+                res.cookie('jwt', NewRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 60 * 60 * 24 });
 
                 // secure cookie w/ access token
-                res.cookie('accessjwt', accessToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000 });
+                res.cookie('accessjwt', accessToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 60 * 60 * 24 });
 
                 // Send the access token and refresh token to the client
                 res.json({
@@ -213,7 +213,7 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
             foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
             const result = await foundUser.save();
 
-            res.cookie('jwt', newRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 24 * 60 * 60 * 1000 });
+            res.cookie('jwt', newRefreshToken, { httpOnly: true, sameSite: 'None', /* secure: true  ,*/ maxAge: 60 * 60 * 24 });
             res.json({ accessToken })
         }
     )
