@@ -4,4 +4,3 @@ logs/reqLog.txt
 logs/errLog.txt
 logs/fileUploadLog.txt
 *.txt
-logs/fileUploadLog.txt
