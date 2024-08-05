@@ -2,3 +2,5 @@ node_modules
 .env
 logs/reqLog.txt
 logs/errLog.txt
+logs/fileUploadLog.txt
+
