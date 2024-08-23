@@ -14,6 +14,12 @@ const addPost = asyncHandler(async (req, res) => {
     const JWTValue = allCookies.jwt
     const foundUser = await User.findOne({ refreshToken: JWTValue }).exec(); //user thats signed into phone
     const _watchlistType = req.body.watchlistType;
+    const _missingPersonFirst = req.body.missingPersonFirst
+    const _missingPersonLast = req.body.missingPersonLast
+    const _missingPersonSex = req.body.missingPersonSex
+    const _missingPersonAge = req.body.missingPersonAge
+    const _missingPersonHeight = req.body.missingPersonHeight
+
     let _postLocation;
     // Check if post location is provided, if not, set it to "false".
     if (!req.body.postLocation) {
@@ -31,6 +37,14 @@ if(foundUser){
                     userLastName: foundUser.lastName,
                     username: foundUser.username,
                     watchlistType:_watchlistType,
+                    MissingPersonContent:{
+                        First: _missingPersonFirst,
+                        Last: _missingPersonLast,
+                        Sex: _missingPersonSex,
+                        Age: _missingPersonAge,
+                        Height: _missingPersonHeight
+
+                    }
                 })
                 console.log(personPost)
                 return res.status(201).json({ 'success': 'Person Watchlist created successfully.' });

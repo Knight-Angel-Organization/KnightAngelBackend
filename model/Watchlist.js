@@ -3,45 +3,43 @@ const Schema = mongoose.Schema;
 const imageSchema = require('./Image');
 
 const missingPersonSchema = new Schema ({
-    missingPersonFirst:{
-        type: String,
-        required: true
-    },
-    missingPersonLast:{
-        type: String,
-        required:true
-    },
-    missingPersonSex:{
+    First:{
         type: String,
     },
-    missingPersonAge:{
+    Last:{
+        type: String,
+    },
+    Sex:{
+        type: String,
+    },
+    Age:{
         type: Number
     },
-    missingPersonHeight:{
+    Height:{
         type: String
     },
-    missingPersonWeight:{
+    Weight:{
         type: Number
     },
-    missingPersonEyes:{
+    Eyes:{
         type: String
     },
-    missingPersonLocation:{
+    Location:{
         type: String
     },
-    missingPersonUnique: {
+    Unique: {
         type: String
     },
-    missingPersonReward: {
+    Reward: {
         type: String
     },
-    missingPersonContact: {
+    Contact: {
         type: String
     },
-    missingPersonLinks: {
+    Links: {
         type: String
     },
-    missingPersonExtra: {
+    Extra: {
         type: String
     } 
 })  
