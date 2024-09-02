@@ -24,18 +24,6 @@ const addPost = asyncHandler(async (req, res) => {
 
 if(foundUser){
     if(_watchlistType == "Person" ){
-        const _missingPersonFirst = req.body.missingPersonFirst
-        const _missingPersonLast = req.body.missingPersonLast
-        const _missingPersonSex = req.body.missingPersonSex
-        const _missingPersonAge = req.body.missingPersonAge
-        const _missingPersonHeight = req.body.missingPersonHeight
-        const _missingPersonWeight = req.body.missingPersonWeight
-        const _missingPersonEyes = req.body.missingPersonEyes
-        const _missingPersonUnique = req.body.missingPersonUnique
-        const _missingPersonReward = req.body.missingPersonReward
-        const _missingPersonContact = req.body.missingpersonContact
-        const _missingPersonLinks = req.body.missingPersonLinks
-        const _missingPersonExtra = req.body.missingPersonExtra
         if(!req.file){
             try{
                 const personPost = await Watchlist.create({
@@ -44,19 +32,19 @@ if(foundUser){
                     username: foundUser.username,
                     watchlistType:_watchlistType,
                     MissingPersonContent:{
-                        First: _missingPersonFirst,
-                        Last: _missingPersonLast,
-                        Sex: _missingPersonSex,
-                        Age: _missingPersonAge,
-                        Height: _missingPersonHeight,
-                        Weight: _missingPersonWeight,
-                        Eyes: _missingPersonEyes,
+                        First: req.body.missingPersonFirst,
+                        Last: req.body.missingPersonLast,
+                        Sex: req.body.missingPersonSex,
+                        Age: req.body.missingPersonAge,
+                        Height: req.body.missingPersonHeight,
+                        Weight: req.body.missingPersonWeight,
+                        Eyes: req.body.missingPersonEyes,
                         Location : _postLocation,
-                        Unique: _missingPersonUnique,
-                        Reward: _missingPersonReward,
-                        Contact: _missingPersonContact,
-                        Links: _missingPersonLinks,
-                        Extra: _missingPersonExtra
+                        Unique: req.body.missingPersonUnique,
+                        Reward: req.body.missingPersonReward,
+                        Contact: req.body.missingPersonContact,
+                        Links: req.body.missingPersonLinks,
+                        Extra: req.body.missingPersonExtra
                     }
                 })
                 console.log(personPost)
@@ -95,16 +83,6 @@ if(foundUser){
             }
         }
     }else if (_watchlistType == "Pet"){
-        const _missingPetName = req.body.missingPetName
-        const _missingPetBreed = req.body.missingPetBreed
-        const _missingPetSex = req.body.missingPetSex
-        const _missingPetSize = req.body.missingPetSize
-        const _missingPetColor = req.body.missingPetColor
-        const _missingPetUnique = req.body.missingPetUnique
-        const _missingPetReward = req.body.missingPetReward
-        const _missingPetContact = req.body.missingPetContact
-        const _missingPetLinks = req.body.missingPetLinks
-        const _missingPetExtra = req.body.missingPetExtra
         if(!req.file){
             try{
                 const personPost = await Watchlist.create({
@@ -113,17 +91,17 @@ if(foundUser){
                     username: foundUser.username,
                     watchlistType:_watchlistType,
                     MissingPetContent:{
-                        Name: _missingPetName,
-                        Breed: _missingPetBreed,
-                        Sex: _missingPetSex,
-                        Size: _missingPetSize,
-                        Color: _missingPetColor,
+                        Name: req.body.missingPetName,
+                        Breed: req.body.missingPetBreed,
+                        Sex: req.body.missingPetSex,
+                        Size: req.body.missingPetSize,
+                        Color: req.body.missingPetColor,
                         Location : _postLocation,
-                        Unique: _missingPetUnique,
-                        Reward: _missingPetReward,
-                        Contact: _missingPetContact,
-                        Links: _missingPetLinks,
-                        Extra: _missingPetExtra
+                        Unique: req.body.missingPetUnique,
+                        Reward: req.body.missingPetReward,
+                        Contact: req.body.missingPetContact,
+                        Links: req.body.missingPetLinks,
+                        Extra: req.body.missingPetExtra
                     }
                 })
                 console.log(personPost)
