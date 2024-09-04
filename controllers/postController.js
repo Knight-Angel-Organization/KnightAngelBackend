@@ -246,16 +246,25 @@ const deletePost = asyncHandler(async (req, res) => {
 });
 
 const likePost = asyncHandler(async (req, res) => {
-
-
-    // Probably should refactor later
-    // Gonna need to verify user is authenticated to like for specified user
-
+    const allCookies = req.cookies;
+    const JWTValue = allCookies.jwt;
+    const foundUser = await User.findOne({ refreshToken: JWTValue }).exec();
     const _postID = req.body.postID;
-    const _userID = req.body.userID;
+    
+
+    if(foundUser){
+        const foundPost = await Post.findOne({ _id: new ObjectId(_postID) });
+        if(foundPost){
+            foundPost.postLikes.push(foundUser.username);
+            const updatedPost = await foundPost.save();
+        if (updatedPost) {
+            return res.status(200).json({ 'success': 'Post liked successfully.' });
+        }
+        }
+    }
 
 
-    if (!_postID || !_userID) {
+    /* if (!_postID || !_userID) {
         return res.status(400).json({ 'message': 'Error: Post ID and user ID are required.' });
     }
 
@@ -263,8 +272,7 @@ const likePost = asyncHandler(async (req, res) => {
         return res.status(400).json({ 'message': 'Post ID or user ID is invalid.' });
     }
 
-    const foundPost = await Post.findOne({ _id: new ObjectId(_postID) });
-    const foundUser = await User.findOne({ _id: new ObjectId(_userID) });
+    
 
 
 
@@ -289,7 +297,7 @@ const likePost = asyncHandler(async (req, res) => {
 
     if (updatedPost) {
         return res.status(200).json({ 'success': 'Post liked successfully.' });
-    }
+    } */
 });
 
 module.exports = { addPost, getPost, editPost, deletePost, likePost };
